@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0A0A0A;
+    color: #E5E7EB;
+    font-family: 'Cairo', 'Montserrat', sans-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0D0D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CFF00;
+}
+
+/* Glow effects */
+.glow-neon {
+  box-shadow: 0 0 25px rgba(156, 255, 0, 0.25);
+}
+
+.glow-neon-lg {
+  box-shadow: 0 0 40px rgba(156, 255, 0, 0.4);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(156, 255, 0, 0.5);
+}
+
+/* Print CSS for High-Definition PDF Generation (ZERO WHITE MARGINS) */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
+  }
+
+  html, body, #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #0A0A0A !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-scheme: dark !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-page {
+    background-color: #0A0A0A !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .pdf-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 !important;
+    margin-top: 50px !important;
+    padding: 24px !important;
+    padding-top: 40px !important;
+    background-color: #0A0A0A !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+  }
+}
+
+.pdf-page-break {
+  page-break-after: always;
+  break-after: page;
+}
