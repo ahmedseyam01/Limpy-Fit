@@ -111,8 +111,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
             type="button"
             onClick={() => { setActiveTab('admin'); setError(''); }}
             className={`py-2 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'admin'
-                ? 'bg-[#9CFF00] text-black shadow-[0_0_15px_rgba(156,255,0,0.3)]'
-                : 'text-gray-400 hover:text-white'
+              ? 'bg-[#9CFF00] text-black shadow-[0_0_15px_rgba(156,255,0,0.3)]'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <ShieldCheck className="w-4 h-4 shrink-0" />
@@ -123,8 +123,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
             type="button"
             onClick={() => { setActiveTab('trainee'); setError(''); }}
             className={`py-2 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'trainee'
-                ? 'bg-[#9CFF00] text-black shadow-[0_0_15px_rgba(156,255,0,0.3)]'
-                : 'text-gray-400 hover:text-white'
+              ? 'bg-[#9CFF00] text-black shadow-[0_0_15px_rgba(156,255,0,0.3)]'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <UserCheck className="w-4 h-4 shrink-0" />
@@ -266,12 +266,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
 
         {/* Pure English Clean Footer */}
         <div className="mt-4 sm:mt-5 pt-3 border-t border-[#222222] text-center space-y-0.5 pb-0.5" dir="ltr">
-          <div className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-mono font-bold text-white tracking-widest uppercase">
-            <span>LIMBY FIT ©</span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-[#9CFF00]/15 text-[#9CFF00] border border-[#9CFF00]/40 shadow-[0_0_10px_rgba(156,255,0,0.25)]">
-              2026
-            </span>
-          </div>
+          <p className="text-[11px] sm:text-xs font-mono font-bold text-white tracking-widest uppercase">
+            LIMBY FIT © 2026
+          </p>
           <p className="text-[11px] sm:text-xs text-gray-300 font-sans">
             Designed & Developed by <span className="text-[#9CFF00] font-black whitespace-nowrap">Ahmed Seyam</span>
           </p>

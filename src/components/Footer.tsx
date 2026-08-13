@@ -7,21 +7,17 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ className = '', isLight = false }) => {
   return (
-    <footer dir="ltr" className={`no-print py-5 sm:py-6 border-t select-none transition-all ${
-      isLight 
-        ? 'bg-gray-100 border-gray-300 text-gray-700' 
+    <footer dir="ltr" className={`no-print py-5 sm:py-6 border-t select-none transition-all ${isLight
+        ? 'bg-gray-100 border-gray-300 text-gray-700'
         : 'bg-[#0A0A0A]/95 border-[#1F1F1F] text-gray-400'
-    } ${className}`}>
+      } ${className}`}>
       <div className="max-w-6xl mx-auto px-4 flex flex-col items-center justify-center text-center space-y-1.5 sm:space-y-2.5">
-        
+
         {/* Brand Copyright */}
         <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-base font-black tracking-widest uppercase">
           <span className={isLight ? 'text-gray-900' : 'text-white'}>LIMBY</span>
-          <span className="text-[#9CFF00] drop-shadow-[0_0_8px_rgba(156,255,0,0.5)]">FIT</span>
-          <span className="text-gray-400 font-mono text-xs sm:text-sm">©</span>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-mono font-extrabold bg-[#9CFF00]/15 text-[#9CFF00] border border-[#9CFF00]/40 shadow-[0_0_12px_rgba(156,255,0,0.25)] tracking-wider">
-            2026
-          </span>
+          <span className="text-white">FIT</span>
+          <span className="text-gray-400 font-mono text-xs sm:text-sm">© 2026</span>
         </div>
 
         {/* Developer Credit */}
