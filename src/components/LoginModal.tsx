@@ -266,9 +266,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
 
         {/* Pure English Clean Footer */}
         <div className="mt-4 sm:mt-5 pt-3 border-t border-[#222222] text-center space-y-0.5 pb-0.5" dir="ltr">
-          <p className="text-[11px] sm:text-xs font-mono font-bold text-white tracking-widest uppercase">
-            LIMBY FIT © 2026
-          </p>
+          <div className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-mono font-bold text-white tracking-widest uppercase">
+            <span>LIMBY FIT ©</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-[#9CFF00]/15 text-[#9CFF00] border border-[#9CFF00]/40 shadow-[0_0_10px_rgba(156,255,0,0.25)]">
+              2026
+            </span>
+          </div>
           <p className="text-[11px] sm:text-xs text-gray-300 font-sans">
             Designed & Developed by <span className="text-[#9CFF00] font-black whitespace-nowrap">Ahmed Seyam</span>
           </p>
