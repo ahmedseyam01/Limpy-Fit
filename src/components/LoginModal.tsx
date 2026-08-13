@@ -90,9 +90,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#050505]/95 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#050505]/95 backdrop-blur-md p-3.5 sm:p-6 flex items-center justify-center min-h-screen">
       {/* Container */}
-      <div className="w-full max-w-md bg-[#161616] border border-[#2A2A2A] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-md bg-[#161616] border border-[#2A2A2A] rounded-3xl p-4 sm:p-8 shadow-2xl relative overflow-hidden my-auto">
         {/* Glow backdrops */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#9CFF00]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#9CFF00]/5 rounded-full blur-3xl pointer-events-none"></div>
