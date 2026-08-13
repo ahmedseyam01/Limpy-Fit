@@ -133,55 +133,65 @@ export const FoodDatabaseView: React.FC<FoodDatabaseViewProps> = ({
       </div>
 
       {/* Foods Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredFoods.map(food => {
-          const badge = categoryBadges[food.category] || categoryBadges['protein'];
+      {filteredFoods.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredFoods.map(food => {
+            const badge = categoryBadges[food.category] || categoryBadges['protein'];
 
-          return (
-            <div
-              key={food.id}
-              className="bg-[#161616] border border-[#2A2A2A] hover:border-[#9CFF00]/40 rounded-2xl p-5 transition-all relative overflow-hidden"
-            >
-              {food.isEgyptianSpecialty && (
-                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#9CFF00]/10 text-[#9CFF00] border border-[#9CFF00]/30">
-                  صنف مصري
-                </span>
-              )}
+            return (
+              <div
+                key={food.id}
+                className="bg-[#161616] border border-[#2A2A2A] hover:border-[#9CFF00]/40 rounded-2xl p-5 transition-all relative overflow-hidden"
+              >
+                {food.isEgyptianSpecialty && (
+                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#9CFF00]/10 text-[#9CFF00] border border-[#9CFF00]/30">
+                    صنف مصري
+                  </span>
+                )}
 
-              <div className="mb-3">
-                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.bg}`}>
-                  {badge.label}
-                </span>
-                <h3 className="text-sm font-bold text-white mt-2">{food.nameAr}</h3>
-                <p className="text-[10px] text-gray-500 font-mono">{food.nameEn}</p>
+                <div className="mb-3">
+                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.bg}`}>
+                    {badge.label}
+                  </span>
+                  <h3 className="text-sm font-bold text-white mt-2">{food.nameAr}</h3>
+                  <p className="text-[10px] text-gray-500 font-mono">{food.nameEn}</p>
+                </div>
+
+                <div className="bg-[#0A0A0A] border border-[#222222] p-3 rounded-xl grid grid-cols-4 gap-2 text-center text-xs">
+                  <div>
+                    <span className="text-[9px] text-gray-500 block">السعرات</span>
+                    <span className="font-black text-[#9CFF00]">{food.calories}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-gray-500 block">بروتين</span>
+                    <span className="font-bold text-white">{food.protein}g</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-gray-500 block">نشويات</span>
+                    <span className="font-bold text-white">{food.carbs}g</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-gray-500 block">دهون</span>
+                    <span className="font-bold text-white">{food.fats}g</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 text-[10px] text-gray-500 font-mono text-left">
+                  Per {food.servingSizeGrams}g portion
+                </div>
               </div>
-
-              <div className="bg-[#0A0A0A] border border-[#222222] p-3 rounded-xl grid grid-cols-4 gap-2 text-center text-xs">
-                <div>
-                  <span className="text-[9px] text-gray-500 block">السعرات</span>
-                  <span className="font-black text-[#9CFF00]">{food.calories}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-gray-500 block">بروتين</span>
-                  <span className="font-bold text-white">{food.protein}g</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-gray-500 block">نشويات</span>
-                  <span className="font-bold text-white">{food.carbs}g</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-gray-500 block">دهون</span>
-                  <span className="font-bold text-white">{food.fats}g</span>
-                </div>
-              </div>
-
-              <div className="mt-3 text-[10px] text-gray-500 font-mono text-left">
-                Per {food.servingSizeGrams}g portion
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-10 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#222] text-gray-400 flex items-center justify-center mx-auto">
+            <Search className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-white">لم يتم العثور على أطعمة مطابقة 🔍</h3>
+          <p className="text-xs text-gray-400">جرب البحث بكلمة أخرى أو اختر تصنيفاً آخر.</p>
+        </div>
+      )}
 
       {/* Add Food Modal */}
       {showAddModal && (

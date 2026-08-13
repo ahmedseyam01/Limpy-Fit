@@ -248,7 +248,19 @@ export const DietGeneratorView: React.FC<DietGeneratorViewProps> = ({
   };
 
   if (!selectedTrainee) {
-    return <div className="p-12 text-center text-gray-400">لم يتم العثور على متدربين.</div>;
+    return (
+      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-10 sm:p-14 text-center space-y-4 my-8 shadow-2xl relative overflow-hidden max-w-xl mx-auto">
+        <div className="w-16 h-16 rounded-3xl bg-[#9CFF00]/10 border border-[#9CFF00]/30 text-[#9CFF00] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(156,255,0,0.2)]">
+          <Sparkles className="w-8 h-8 stroke-[2]" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-xl font-black text-white">لا يوجد متدرب محدد لتصميم النظام 🥗</h3>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            يرجى إضافة متدرب جديد أولاً من القائمة الرئيسية لتبدأ في تصميم نظامه التغذوي وحساب السعرات والماكروز.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const target = activePlan?.targetMacros || traineeStats?.macros;
