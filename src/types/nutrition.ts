@@ -1,17 +1,23 @@
 export type Gender = 'male' | 'female';
-
 export type Goal = 'fat_loss' | 'extreme_cut' | 'muscle_gain' | 'recomp' | 'maintenance';
-
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'heavy' | 'athlete';
+export type AuthRole = 'admin' | 'trainee' | null;
+
+export interface AuthState {
+  role: AuthRole;
+  activeTraineeId?: string;
+}
 
 export interface Trainee {
   id: string;
   name: string;
   phone: string;
+  email?: string;
+  password?: string;
   age: number;
   gender: Gender;
-  height: number; // in cm
-  weight: number; // in kg
+  height: number;
+  weight: number;
   targetWeight?: number;
   goal: Goal;
   activityLevel: ActivityLevel;
@@ -26,7 +32,7 @@ export interface Trainee {
 export interface ProgressLog {
   id: string;
   date: string;
-  weight: number; // in kg
+  weight: number;
   waistCm?: number;
   chestCm?: number;
   armCm?: number;
@@ -38,7 +44,7 @@ export interface MacroTargets {
   proteinGrams: number;
   carbsGrams: number;
   fatsGrams: number;
-  proteinRatio: number; // e.g. 2.2 g/kg
+  proteinRatio: number;
 }
 
 export type FoodCategory = 'protein' | 'carbs' | 'fats' | 'veggies' | 'fruits' | 'dairy' | 'supplements';
@@ -48,7 +54,7 @@ export interface FoodItem {
   nameAr: string;
   nameEn: string;
   category: FoodCategory;
-  servingSizeGrams: number; // base reference e.g. 100g
+  servingSizeGrams: number;
   calories: number;
   protein: number;
   carbs: number;
@@ -96,10 +102,21 @@ export interface Meal {
   totalFats: number;
 }
 
+export interface Exercise {
+  id: string;
+  nameAr: string;
+  sets: number;
+  reps: string;
+  restSeconds?: number;
+  notes?: string;
+}
+
 export interface DaySchedule {
-  dayIndex: number; // 0: السبت, 1: الأحد, 2: الإثنين, 3: الثلاثاء, 4: الأربعاء, 5: الخميس, 6: الجمعة
+  dayIndex: number;
   dayNameAr: string;
   dayNameEn: string;
+  workoutFocus?: string;
+  exercises?: Exercise[];
   meals: Meal[];
 }
 
@@ -111,8 +128,8 @@ export interface DietPlan {
   createdAt: string;
   targetMacros: MacroTargets;
   actualMacros: MacroTargets;
-  meals: Meal[]; // Legacy / Default day meals
-  days?: DaySchedule[]; // Full 7-Day Schedule with 5 meals per day
+  meals: Meal[];
+  days?: DaySchedule[];
   supplements: string[];
   hydrationLiters: number;
   sleepHours: number;
@@ -122,12 +139,12 @@ export interface DietPlan {
 export interface CoachProfile {
   name: string;
   title: string;
-  brandName: string; // LIMBY FIT
-  slogan: string; // FUEL YOUR PROGRESS
+  brandName: string;
+  slogan: string;
   logoUrl?: string;
   phone: string;
   whatsapp: string;
   instagram: string;
-  themeColor: string; // #9CFF00
+  themeColor: string;
   generalInstructions: string[];
 }

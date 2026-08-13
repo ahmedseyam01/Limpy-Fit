@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trainee, Goal, ActivityLevel, Gender } from '../types/nutrition';
 import { computeTraineeNutritionStats } from '../utils/calculator';
-import { X, UserPlus, Flame, Dumbbell, Sparkles, Activity } from 'lucide-react';
+import { X, UserPlus, Flame, Dumbbell, Sparkles, Activity, Copy, Check } from 'lucide-react';
 
 interface AddTraineeModalProps {
   isOpen: boolean;
@@ -22,6 +22,43 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   const [workoutDays, setWorkoutDays] = useState(5);
   const [notes, setNotes] = useState('');
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
+
+  // Helper function to generate clean Email with name + 2 digits
+  const generateUniqueEmail = (rawName: string): string => {
+    const twoDigits = Math.floor(10 + Math.random() * 90); // Exactly 2 digits (10-99)
+    const cleanLatin = rawName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    if (cleanLatin.length >= 2) {
+      return `${cleanLatin}${twoDigits}@limbyfit.com`;
+    }
+    return `user${twoDigits}@limbyfit.com`;
+  };
+
+  // Helper function to generate clean Passcode (e.g. fit5338)
+  const generateUniquePassword = (): string => {
+    const fourDigits = Math.floor(1000 + Math.random() * 9000);
+    return `fit${fourDigits}`;
+  };
+
+  // Auto-generate credentials based on name
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (!email && val.trim().length > 2) {
+      setEmail(generateUniqueEmail(val));
+    }
+    if (!password) {
+      setPassword(generateUniquePassword());
+    }
+  };
+
+  const handleRegenerateCredentials = () => {
+    setEmail(generateUniqueEmail(name));
+    setPassword(generateUniquePassword());
+  };
+
   if (!isOpen) return null;
 
   // Live Nutrition Preview
@@ -29,6 +66,8 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
     id: 'temp',
     name: name || 'متدرب جديد',
     phone,
+    email: email || `${name.trim() || 'user'}@limbyfit.com`,
+    password: password || 'fit1234',
     age: Number(age),
     gender,
     height: Number(height),
@@ -48,9 +87,14 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
     e.preventDefault();
     if (!name.trim()) return;
 
+    const finalEmail = email || `${name.trim().toLowerCase().replace(/\s+/g, '')}${Math.floor(100 + Math.random() * 900)}@limbyfit.com`;
+    const finalPassword = password || ('fit' + Math.floor(1000 + Math.random() * 9000));
+
     const newTrainee: Trainee = {
       ...tempTrainee,
       id: `tr-${Date.now()}`,
+      email: finalEmail,
+      password: finalPassword,
       progressLogs: [
         {
           id: `p-${Date.now()}`,
@@ -65,70 +109,174 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl relative my-8">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#262626]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#9CFF00] text-black flex items-center justify-center font-black">
-              <UserPlus className="w-5 h-5 stroke-[2.5]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl relative my-auto">
+        
+        {/* Sticky Top Header Bar (100% Mobile Ready) */}
+        <div className="sticky top-0 z-30 bg-[#161616]/95 backdrop-blur-md px-3.5 sm:px-6 py-3 border-b border-[#262626] flex items-center justify-between gap-2 rounded-t-3xl">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-[#9CFF00] text-black flex items-center justify-center font-black shrink-0">
+              <UserPlus className="w-4 h-4 stroke-[2.5]" />
             </div>
-            <div>
-              <h2 className="text-lg font-black text-white">إضافة متدرب جديد (السيستم بيعمل النظام أوتوماتيك 100%)</h2>
-              <p className="text-xs text-gray-400">أدخل البيانات فقط وسيتم توليد الجدول والوجبات والجرامات والبدائل أوتوماتيكياً</p>
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-base font-black text-white leading-tight truncate">إضافة متدرب جديد</h2>
+              <p className="text-[10px] sm:text-[11px] text-gray-400 truncate">توليد النظام الغذائي وبيانات الدخول تلقائياً</p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-[#262626] text-gray-400 hover:text-white transition-colors cursor-pointer"
+            className="bg-[#222222] hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-[#333333] hover:border-red-500/40 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0 active:scale-95 shadow-sm"
+            title="إغلاق النافذة"
           >
-            <X className="w-5 h-5" />
+            <X className="w-3.5 h-3.5 text-red-400" />
+            <span>إغلاق</span>
           </button>
         </div>
 
+        {/* Modal Scrollable Body Content */}
+        <div className="p-3.5 sm:p-8 pt-3">
+
         {/* Coach Custom Design Info Banner */}
-        <div className="mt-4 p-3 bg-[#9CFF00]/10 border border-[#9CFF00]/30 rounded-2xl flex items-center gap-3 text-xs text-[#9CFF00]">
-          <Sparkles className="w-5 h-5 shrink-0" />
+        <div className="p-3 bg-[#9CFF00]/10 border border-[#9CFF00]/30 rounded-2xl flex items-center gap-2.5 text-xs text-[#9CFF00]">
+          <Sparkles className="w-4.5 h-4.5 shrink-0" />
           <div>
-            <span className="font-bold block">🎨 مصمم الأنظمة الغذائية التفاعلي الخاص بك!</span>
-            <span className="text-[11px] text-gray-300">أنت من يختار الوجبات والجرامات المحددة، والنظام يحسب لك السعرات والماكروز في الوقت الفعلي ويجهز لك ملف PDF للعرض والطباعة فوراً.</span>
+            <span className="font-bold block text-[11px] sm:text-xs">🎨 مصمم الأنظمة الغذائية التفاعلي الخاص بك!</span>
+            <span className="text-[10px] sm:text-[11px] text-gray-300 block leading-tight mt-0.5">أنت من يختار الوجبات والجرامات، والنظام يحسب السعرات والماكروز فوراً ويجهز ملف PDF جاهز للطباعة.</span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mt-4 sm:mt-5">
           {/* Section 1: Basic Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">اسم المتدرب بالكامل *</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1">اسم المتدرب بالكامل *</label>
               <input
                 type="text"
                 required
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="مثال: محمود عبد الله"
-                className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3.5 text-xs outline-none"
+                className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2 px-3 text-xs outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">رقم الهاتف / الواتساب</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1">رقم الهاتف / الواتساب *</label>
               <input
                 type="tel"
+                required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+20 100 000 0000"
-                className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3.5 text-xs outline-none font-mono"
+                className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2 px-3 text-xs outline-none font-mono"
               />
+            </div>
+          </div>
+
+          {/* Section 1.5: Auto-Generated User Credentials Box */}
+          <div className="bg-[#0A0A0A] border border-[#9CFF00]/30 rounded-2xl p-3 sm:p-4 space-y-2.5 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5">
+              <span className="text-xs font-bold text-[#9CFF00] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>بيانات دخول المتدرب (توليد أوتوماتيكي)</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleRegenerateCredentials}
+                className="text-[10px] bg-[#222] hover:bg-[#333] text-gray-300 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer self-end sm:self-auto"
+              >
+                <span>إعادة توليد 🔄</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-400 mb-1">البريد الإلكتروني للدخول *</label>
+                <div className="relative flex items-center">
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="user@limbyfit.com"
+                    className="w-full bg-[#141414] border border-[#262626] focus:border-[#9CFF00] text-[#9CFF00] rounded-xl py-2 pr-3 pl-10 text-xs outline-none font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (email) {
+                        navigator.clipboard.writeText(email);
+                        setCopiedField('email');
+                        setTimeout(() => setCopiedField(null), 2000);
+                      }
+                    }}
+                    className="absolute left-2.5 bg-[#222] hover:bg-[#333] text-[#9CFF00] px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    title="نسخ البريد الإلكتروني"
+                  >
+                    {copiedField === 'email' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#9CFF00]" />
+                        <span>تم!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>نسخ</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-400 mb-1">كلمة المرور (Passcode) *</label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="fit1234"
+                    className="w-full bg-[#141414] border border-[#262626] focus:border-[#9CFF00] text-white rounded-xl py-2 pr-3 pl-10 text-xs outline-none font-mono font-bold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (password) {
+                        navigator.clipboard.writeText(password);
+                        setCopiedField('password');
+                        setTimeout(() => setCopiedField(null), 2000);
+                      }
+                    }}
+                    className="absolute left-2.5 bg-[#222] hover:bg-[#333] text-[#9CFF00] px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    title="نسخ كلمة المرور"
+                  >
+                    {copiedField === 'password' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#9CFF00]" />
+                        <span>تم!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>نسخ</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Section 2: Body Measurements */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">السن (سنة)</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">السن (سنة) *</label>
               <input
                 type="number"
+                required
                 min="12"
                 max="90"
                 value={age}
@@ -138,9 +286,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">النوع (Gender)</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">النوع (Gender) *</label>
               <select
                 value={gender}
+                required
                 onChange={(e) => setGender(e.target.value as Gender)}
                 className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-2 text-xs outline-none font-bold"
               >
@@ -150,9 +299,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">الطول (سم)</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">الطول (سم) *</label>
               <input
                 type="number"
+                required
                 min="120"
                 max="230"
                 value={height}
@@ -162,9 +312,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">الوزن الحالي (كجم)</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">الوزن الحالي (كجم) *</label>
               <input
                 type="number"
+                required
                 min="30"
                 max="250"
                 value={weight}
@@ -177,9 +328,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
           {/* Section 3: Goal & Activity */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">الهدف التغذوي (Goal)</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">الهدف التغذوي (Goal) *</label>
               <select
                 value={goal}
+                required
                 onChange={(e) => setGoal(e.target.value as Goal)}
                 className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3 text-xs outline-none font-bold"
               >
@@ -192,9 +344,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1.5">مستوى النشاط (Activity Level)</label>
+              <label className="block text-xs font-bold text-gray-300 mb-1.5">مستوى النشاط (Activity Level) *</label>
               <select
                 value={activityLevel}
+                required
                 onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
                 className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3 text-xs outline-none font-bold"
               >
@@ -245,12 +398,12 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-300 mb-1.5">ملاحظات الكابتن عن المتدرب</label>
+            <label className="block text-xs font-bold text-gray-300 mb-1.5">ملاحظات الكابتن عن المتدرب (اختياري)</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="مثال: يعاني من حساسية ألبان، يفضل 5 وجبات يومياً..."
+              placeholder="مثال: يعاني من حساسية ألبان، يفضل 5 وجبات يومياً... (يمكن تركها فارغة)"
               className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2 px-3 text-xs outline-none resize-none"
             />
           </div>
@@ -273,6 +426,7 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

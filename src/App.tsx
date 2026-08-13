@@ -1,31 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  DEFAULT_COACH_PROFILE, 
-  INITIAL_TRAINEES, 
-  SAMPLE_DIET_PLAN 
+import {
+  DEFAULT_COACH_PROFILE,
+  INITIAL_TRAINEES,
+  SAMPLE_DIET_PLAN
 } from './data/initialData';
-import { Trainee, DietPlan, CoachProfile, Meal, DaySchedule } from './types/nutrition';
-import { LimbyLogo } from './components/LimbyLogo';
+import { Trainee, DietPlan, CoachProfile, Meal, DaySchedule, AuthRole, Exercise } from './types/nutrition';
 import { PdfExportView } from './components/PdfExportView';
 import { Navbar } from './components/Navbar';
-import { 
-  UserPlus, 
-  Trash2, 
-  FileText, 
-  Plus, 
-  ArrowRight, 
-  Dumbbell, 
+import { LoginModal } from './components/LoginModal';
+import { TraineePortalView } from './components/TraineePortalView';
+import { AddTraineeModal } from './components/AddTraineeModal';
+import { Footer } from './components/Footer';
+import {
+  UserPlus,
+  Trash2,
+  FileText,
+  Plus,
+  ArrowRight,
+  Dumbbell,
   Calendar,
   Copy,
   Check,
-  X,
   Sparkles,
   Search,
-  ChevronLeft,
+  Key,
+  MessageCircle,
   AlertTriangle
 } from 'lucide-react';
 
+const GOAL_LABELS_AR: Record<string, string> = {
+  fat_loss: 'تنشيف وحرق دهون 🔥',
+  extreme_cut: 'تنشيف قاسي سريع ⚡',
+  muscle_gain: 'تضخيم وبناء عضلات 💪',
+  recomp: 'إعادة تشكيل الجسم Recomp ⚖️',
+  maintenance: 'تثبيت وزن وصحة عامة 🛡️'
+};
+
 export function App() {
+  // Authentication Role State ('admin' | 'trainee' | null)
+  const [authRole, setAuthRole] = useState<AuthRole>(() => {
+    const saved = localStorage.getItem('limby_auth_role') as AuthRole;
+    return saved || null;
+  });
+
+  // Logged-in Trainee ID (for Trainee role)
+  const [activeTraineeId, setActiveTraineeId] = useState<string>(() => {
+    return localStorage.getItem('limby_active_trainee_id') || '';
+  });
+
   // Persistence
   const [coachProfile, setCoachProfile] = useState<CoachProfile>(() => {
     const saved = localStorage.getItem('limby_coach_profile');
@@ -42,23 +64,16 @@ export function App() {
     return saved ? JSON.parse(saved) : [SAMPLE_DIET_PLAN];
   });
 
-  // Current View: 'list' | 'plan' | 'pdf' | 'settings'
+  // Current View for Admin: 'list' | 'plan' | 'pdf' | 'settings'
   const [currentView, setCurrentView] = useState<'list' | 'plan' | 'pdf' | 'settings'>('list');
   const [selectedTraineeId, setSelectedTraineeId] = useState<string>(trainees[0]?.id || '');
   const [activeDayIndex, setActiveDayIndex] = useState<number>(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedNotification, setCopiedNotification] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Custom Delete Confirmation Modal State
   const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
-
-  // New Trainee Form State
-  const [newTraineeName, setNewTraineeName] = useState('');
-  const [newTraineePhone, setNewTraineePhone] = useState('');
-  const [newTraineeWeight, setNewTraineeWeight] = useState(80);
-  const [newTraineeHeight, setNewTraineeHeight] = useState(175);
-  const [newTraineeGoal, setNewTraineeGoal] = useState('تنشيف وحرق دهون');
 
   // Days list
   const daysNames = [
@@ -80,20 +95,63 @@ export function App() {
     localStorage.setItem('limby_plans', JSON.stringify(dietPlans));
   }, [dietPlans]);
 
+  // Handle Admin Login
+  const handleAdminLogin = () => {
+    setAuthRole('admin');
+    localStorage.setItem('limby_auth_role', 'admin');
+  };
+
+  // Handle Trainee Login
+  const handleTraineeLogin = (traineeId: string) => {
+    setAuthRole('trainee');
+    setActiveTraineeId(traineeId);
+    setSelectedTraineeId(traineeId);
+    localStorage.setItem('limby_auth_role', 'trainee');
+    localStorage.setItem('limby_active_trainee_id', traineeId);
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    setAuthRole(null);
+    localStorage.removeItem('limby_auth_role');
+    localStorage.removeItem('limby_active_trainee_id');
+  };
+
+  // Copy Trainee Login Credentials to Clipboard
+  const handleCopyCredentials = (t: Trainee) => {
+    const text = `بيانات دخول المتدرب ${t.name} في تطبيق LIMBY FIT:\nالبريد الإلكتروني: ${t.email || `${t.name}@limbyfit.com`}\nكلمة المرور: ${t.password || 'fit1234'}`;
+    navigator.clipboard.writeText(text);
+    alert(`تم نسخ بيانات دخول المتدرب (${t.name}) إلى الحافظة! 📋`);
+  };
+
+  // Share Trainee Credentials directly on WhatsApp
+  const handleShareWhatsAppCredentials = (t: Trainee) => {
+    const cleanPhone = (t.phone || '').replace(/[^0-9]/g, '');
+    const message = `مرحباً ${t.name} 🦾، يمكنك الآن دخول تطبيق LIMBY FIT لمشاهدة نظامك الغذائي الأسبوعي ومتابعة التطور! 🍏\n\nالبريد الإلكتروني: ${t.email || `${t.name}@limbyfit.com`}\nكلمة المرور: ${t.password || 'fit1234'}`;
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
   // Active Trainee & Plan
   const selectedTrainee = trainees.find(t => t.id === selectedTraineeId) || trainees[0];
-  
-  // Build standard 7-day 5-meal schedule with Atwater calculations
+
+  const defaultWorkoutFocusList = ['', '', '', '', '', '', ''];
+
+  const defaultWorkoutExercisesList: Exercise[][] = [[], [], [], [], [], [], []];
+
+  // Build standard 7-day 5-meal schedule with blank inputs by default
   const default7Days: DaySchedule[] = daysNames.map((d, idx) => ({
     dayIndex: idx,
     dayNameAr: d.ar,
     dayNameEn: d.en,
+    workoutFocus: '',
+    exercises: [],
     meals: [
-      { id: `m1-${idx}`, type: 'breakfast', titleAr: '1. وجبة الإفطار', titleEn: 'Breakfast', items: [{ foodId: 'f1', foodNameAr: 'شوفان 60ج + 4 بياض بيض + 1 بيضة كاملة', foodNameEn: 'Oats & Eggs', grams: 150, calories: 360, protein: 32, carbs: 40, fats: 8 }], totalCalories: 360, totalProtein: 32, totalCarbs: 40, totalFats: 8, notes: '' },
-      { id: `m2-${idx}`, type: 'snack_1', titleAr: '2. وجبة سناك صباحي', titleEn: 'Morning Snack', items: [{ foodId: 'f2', foodNameAr: 'ثمرة موز 100ج + 20ج زبدة فول سوداني', foodNameEn: 'Banana & PB', grams: 120, calories: 246, protein: 7, carbs: 32, fats: 10 }], totalCalories: 246, totalProtein: 7, totalCarbs: 32, totalFats: 10, notes: '' },
-      { id: `m3-${idx}`, type: 'lunch', titleAr: '3. وجبة الغداء الرئيسية', titleEn: 'Lunch', items: [{ foodId: 'f3', foodNameAr: '180ج صدور دجاج مشوية + 200ج أرز بسمتي + سلطة', foodNameEn: 'Chicken & Rice', grams: 380, calories: 503, protein: 54, carbs: 56, fats: 7 }], totalCalories: 503, totalProtein: 54, totalCarbs: 56, totalFats: 7, notes: '' },
-      { id: `m4-${idx}`, type: 'post_workout', titleAr: '4. وجبة قبل/بعد التمرين', titleEn: 'Workout Snack', items: [{ foodId: 'f4', foodNameAr: 'سكوب واي بروتين + موز', foodNameEn: 'Whey Protein', grams: 130, calories: 238, protein: 30, carbs: 25, fats: 2 }], totalCalories: 238, totalProtein: 30, totalCarbs: 25, totalFats: 2, notes: '' },
-      { id: `m5-${idx}`, type: 'dinner', titleAr: '5. وجبة العشاء', titleEn: 'Dinner', items: [{ foodId: 'f5', foodNameAr: '200ج جبنة قريش + 10ج زيت زيتون + خيار', foodNameEn: 'Cottage Cheese', grams: 210, calories: 270, protein: 28, carbs: 8, fats: 14 }], totalCalories: 270, totalProtein: 28, totalCarbs: 8, totalFats: 14, notes: '' }
+      { id: `m1-${idx}`, type: 'breakfast', titleAr: '1. وجبة الإفطار', titleEn: 'Breakfast', items: [{ foodId: 'f1', foodNameAr: '', foodNameEn: '', grams: 150, calories: 360, protein: 32, carbs: 40, fats: 8 }], totalCalories: 360, totalProtein: 32, totalCarbs: 40, totalFats: 8, notes: '' },
+      { id: `m2-${idx}`, type: 'snack_1', titleAr: '2. وجبة سناك صباحي', titleEn: 'Morning Snack', items: [{ foodId: 'f2', foodNameAr: '', foodNameEn: '', grams: 120, calories: 246, protein: 7, carbs: 32, fats: 10 }], totalCalories: 246, totalProtein: 7, totalCarbs: 32, totalFats: 10, notes: '' },
+      { id: `m3-${idx}`, type: 'lunch', titleAr: '3. وجبة الغداء الرئيسية', titleEn: 'Lunch', items: [{ foodId: 'f3', foodNameAr: '', foodNameEn: '', grams: 380, calories: 503, protein: 54, carbs: 56, fats: 7 }], totalCalories: 503, totalProtein: 54, totalCarbs: 56, totalFats: 7, notes: '' },
+      { id: `m4-${idx}`, type: 'post_workout', titleAr: '4. وجبة قبل/بعد التمرين', titleEn: 'Workout Snack', items: [{ foodId: 'f4', foodNameAr: '', foodNameEn: '', grams: 130, calories: 238, protein: 30, carbs: 25, fats: 2 }], totalCalories: 238, totalProtein: 30, totalCarbs: 25, totalFats: 2, notes: '' },
+      { id: `m5-${idx}`, type: 'dinner', titleAr: '5. وجبة العشاء', titleEn: 'Dinner', items: [{ foodId: 'f5', foodNameAr: '', foodNameEn: '', grams: 210, calories: 270, protein: 28, carbs: 8, fats: 14 }], totalCalories: 270, totalProtein: 28, totalCarbs: 8, totalFats: 14, notes: '' }
     ]
   }));
 
@@ -133,6 +191,65 @@ export function App() {
     savePlanToState(updatedPlan);
     setCopiedNotification(true);
     setTimeout(() => setCopiedNotification(false), 3000);
+  };
+
+  // Update Workout Focus for active day
+  const handleUpdateDayWorkout = (dayIndex: number, text: string) => {
+    const updatedDays = [...currentDaysSchedule];
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      workoutFocus: text
+    };
+
+    const updatedPlan: DietPlan = {
+      ...activePlan,
+      days: updatedDays
+    };
+
+    savePlanToState(updatedPlan);
+  };
+
+  // Exercise Handlers for active day
+  const handleAddExercise = (dayIndex: number) => {
+    const updatedDays = [...currentDaysSchedule];
+    const currentExercises = updatedDays[dayIndex].exercises || [];
+    const newEx: Exercise = {
+      id: `ex-${Date.now()}`,
+      nameAr: '',
+      sets: 3,
+      reps: '10-12',
+      restSeconds: 60,
+      notes: ''
+    };
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      exercises: [...currentExercises, newEx]
+    };
+    savePlanToState({ ...activePlan, days: updatedDays });
+  };
+
+  const handleUpdateExercise = (dayIndex: number, exIdx: number, field: keyof Exercise, val: any) => {
+    const updatedDays = [...currentDaysSchedule];
+    const currentExercises = [...(updatedDays[dayIndex].exercises || [])];
+    currentExercises[exIdx] = {
+      ...currentExercises[exIdx],
+      [field]: val
+    };
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      exercises: currentExercises
+    };
+    savePlanToState({ ...activePlan, days: updatedDays });
+  };
+
+  const handleDeleteExercise = (dayIndex: number, exIdx: number) => {
+    const updatedDays = [...currentDaysSchedule];
+    const currentExercises = (updatedDays[dayIndex].exercises || []).filter((_, i) => i !== exIdx);
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      exercises: currentExercises
+    };
+    savePlanToState({ ...activePlan, days: updatedDays });
   };
 
   // Update Meal text for active day
@@ -181,39 +298,18 @@ export function App() {
     });
   };
 
-  // Add Trainee
-  const handleAddTrainee = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTraineeName.trim()) return;
-
-    const newTrainee: Trainee = {
-      id: `tr-${Date.now()}`,
-      name: newTraineeName,
-      phone: newTraineePhone || '+20 100 000 0000',
-      age: 25,
-      gender: 'male',
-      height: Number(newTraineeHeight),
-      weight: Number(newTraineeWeight),
-      goal: 'fat_loss',
-      activityLevel: 'moderate',
-      workoutDays: 5,
-      notes: newTraineeGoal,
-      createdAt: new Date().toISOString().split('T')[0],
-      progressLogs: []
-    };
-
+  // Add Trainee Handler
+  const handleAddTraineeFromModal = (newTrainee: Trainee) => {
     const updatedTrainees = [newTrainee, ...trainees];
     setTrainees(updatedTrainees);
     localStorage.setItem('limby_trainees', JSON.stringify(updatedTrainees));
-    
+
     setSelectedTraineeId(newTrainee.id);
     setShowAddModal(false);
-    setNewTraineeName('');
-    setNewTraineePhone('');
     setCurrentView('plan');
   };
 
-  // Confirm and Perform Delete Trainee reliably
+  // Confirm Delete Trainee
   const confirmDeleteTrainee = () => {
     if (!traineeToDelete) return;
     const targetId = traineeToDelete.id;
@@ -235,19 +331,72 @@ export function App() {
   };
 
   // Filtered Trainees Search
-  const filteredTrainees = trainees.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredTrainees = trainees.filter(t =>
+    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (t.notes && t.notes.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // --- RENDER CONDITION 1: NO AUTH (SHOW LOGIN MODAL) ---
+  if (authRole === null) {
+    return (
+      <LoginModal
+        trainees={trainees}
+        onAdminLogin={handleAdminLogin}
+        onTraineeLogin={handleTraineeLogin}
+      />
+    );
+  }
+
+  // --- RENDER CONDITION 2: LOGGED IN AS TRAINEE (SHOW TRAINEE PORTAL) ---
+  if (authRole === 'trainee') {
+    const loggedInTrainee = trainees.find(t => t.id === activeTraineeId) || trainees[0];
+    const loggedInPlan = dietPlans.find(p => p.traineeId === loggedInTrainee.id) || activePlan;
+
+    if (currentView === 'pdf') {
+      return (
+        <div className="min-h-screen bg-[#0A0A0A] text-white p-4">
+          <button
+            onClick={() => setCurrentView('list')}
+            className="mb-4 bg-[#222] hover:bg-[#333] border border-[#333] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer"
+          >
+            <ArrowRight className="w-4 h-4 text-[#9CFF00]" />
+            <span>العودة لبوابة المتدرب</span>
+          </button>
+          <PdfExportView
+            trainee={loggedInTrainee}
+            plan={loggedInPlan}
+            coachProfile={coachProfile}
+            onBack={() => setCurrentView('list')}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <TraineePortalView
+        trainee={loggedInTrainee}
+        dietPlan={loggedInPlan}
+        coachProfile={coachProfile}
+        onLogout={handleLogout}
+        onUpdateTraineeProgress={(updatedTrainee) => {
+          setTrainees(prev => prev.map(t => t.id === updatedTrainee.id ? updatedTrainee : t));
+        }}
+        onViewPdf={() => setCurrentView('pdf')}
+      />
+    );
+  }
+
+  // --- RENDER CONDITION 3: LOGGED IN AS ADMIN (COACH ADMIN SYSTEM) ---
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-sans antialiased pb-16 select-none">
+    <div className="min-h-screen flex flex-col justify-between bg-[#0A0A0A] text-white font-sans antialiased select-none">
+      <div className="flex-1">
       {/* Brand Navigation Bar */}
       <Navbar
         coachProfile={coachProfile}
         currentView={currentView}
         setCurrentView={setCurrentView}
         onOpenAddModal={() => setShowAddModal(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -258,7 +407,7 @@ export function App() {
             {/* Header Banner */}
             <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
               <div className="absolute top-0 right-0 w-64 h-full bg-[#9CFF00]/5 blur-3xl pointer-events-none"></div>
-              
+
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -268,10 +417,10 @@ export function App() {
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
-                    قائمة المشتركين  ({trainees.length})
+                    قائمة المشتركين ({trainees.length})
                   </h1>
                   <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                    إدارة المشتركين البرايفيت، كتابة النظام الغذائي الأسبوعي (7 أيام)، واستخراج تقارير الـ PDF.
+                    إدارة المشتركين، إنشاء حسابات التغذية، توليد بيانات الدخول، وإرسالها بضغطة زر.
                   </p>
                 </div>
 
@@ -329,12 +478,74 @@ export function App() {
                     </div>
                   </div>
 
-                  {/* Goal Badge */}
-                  {t.notes && (
-                    <div className="bg-[#0D0D0D] border border-[#222222] p-2.5 rounded-2xl text-xs text-gray-300 font-medium">
-                      🎯 <span className="font-bold text-white">الهدف:</span> {t.notes}
+                  {/* Generated User Credentials Box */}
+                  <div className="bg-[#0A0A0A] border border-[#262626] rounded-2xl p-3 space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-gray-400 font-mono font-bold flex items-center gap-1">
+                        <Key className="w-3 h-3 text-[#9CFF00]" />
+                        بيانات دخول المشترك:
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareWhatsAppCredentials(t);
+                          }}
+                          className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
+                          title="إرسال عبر الواتساب"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>إرسال بالواتساب 💬</span>
+                        </button>
+                      </div>
                     </div>
-                  )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mailToCopy = t.email || `${t.name.trim().toLowerCase().replace(/\s+/g, '')}@limbyfit.com`;
+                          navigator.clipboard.writeText(mailToCopy);
+                          alert(`تم نسخ البريد بنجاح: ${mailToCopy}`);
+                        }}
+                        className="bg-[#141414] hover:bg-[#1F1F1F] px-2.5 py-1.5 rounded-xl border border-[#222] hover:border-[#9CFF00]/50 text-gray-300 flex items-center justify-between gap-1.5 transition-all cursor-pointer group/mail"
+                        title="اضغط لنسخ البريد الإلكتروني"
+                      >
+                        <span className="truncate">✉️ {t.email || `${t.name}@limbyfit.com`}</span>
+                        <Copy className="w-3 h-3 text-gray-500 group-hover/mail:text-[#9CFF00] shrink-0" />
+                      </div>
+
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const passToCopy = t.password || 'fit1234';
+                          navigator.clipboard.writeText(passToCopy);
+                          alert(`تم نسخ كلمة المرور بنجاح: ${passToCopy}`);
+                        }}
+                        className="bg-[#141414] hover:bg-[#1F1F1F] px-2.5 py-1.5 rounded-xl border border-[#222] hover:border-[#9CFF00]/50 text-[#9CFF00] font-bold flex items-center justify-between gap-1.5 transition-all cursor-pointer group/pass"
+                        title="اضغط لنسخ كلمة المرور"
+                      >
+                        <span className="truncate">🔑 {t.password || 'fit1234'}</span>
+                        <Copy className="w-3 h-3 text-gray-500 group-hover/pass:text-[#9CFF00] shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mandatory Goal Badge for Every Trainee */}
+                  <div className="bg-[#0D0D0D] border border-[#262626] p-2.5 rounded-2xl text-xs text-gray-300 font-medium flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[#9CFF00] font-bold shrink-0">🎯 الهدف:</span>
+                      <span className="font-extrabold text-white truncate">
+                        {GOAL_LABELS_AR[t.goal] || 'تنشيف وحرق دهون 🔥'}
+                      </span>
+                    </div>
+                    {t.notes && (
+                      <span className="text-[10px] text-gray-400 truncate max-w-[140px]" title={t.notes}>
+                        ({t.notes})
+                      </span>
+                    )}
+                  </div>
 
                   {/* Card Action Buttons */}
                   <div className="pt-3 border-t border-[#222222] flex items-center justify-between gap-2">
@@ -439,11 +650,10 @@ export function App() {
                     <button
                       key={d.en}
                       onClick={() => setActiveDayIndex(idx)}
-                      className={`py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer ${
-                        isActive
+                      className={`py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer ${isActive
                           ? 'bg-[#9CFF00] text-black font-black shadow-[0_0_15px_rgba(156,255,0,0.3)] scale-105'
                           : 'bg-[#0A0A0A] text-gray-400 hover:text-white border border-[#262626]'
-                      }`}
+                        }`}
                     >
                       <span className="block">{d.ar}</span>
                       <span className={`text-[9px] block font-mono ${isActive ? 'text-black' : 'text-gray-600'}`}>{d.en}</span>
@@ -451,195 +661,203 @@ export function App() {
                   );
                 })}
               </div>
+
+              {/* Workout Focus Input for Active Day */}
+              <div className="bg-[#0D0D0D] border border-[#262626] focus-within:border-[#9CFF00] p-3 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all">
+                <div className="flex items-center gap-2 text-xs font-bold text-white shrink-0">
+                  <Dumbbell className="w-4 h-4 text-[#9CFF00]" />
+                  <span>تمرين اليوم (عضلة اليوم / راحة):</span>
+                </div>
+                <input
+                  type="text"
+                  value={currentDaysSchedule[activeDayIndex]?.workoutFocus || ''}
+                  onChange={(e) => handleUpdateDayWorkout(activeDayIndex, e.target.value)}
+                  placeholder="مثال: عضلات الصدر والكتف / راحة تامة..."
+                  className="w-full sm:w-2/3 bg-[#141414] border border-[#222222] focus:border-[#9CFF00] text-[#9CFF00] text-xs font-bold rounded-xl py-2 px-3 outline-none transition-all placeholder:text-gray-600"
+                />
+              </div>
             </div>
 
-            {/* Meals Editor for Selected Day */}
+            {/* MEALS LIST FOR ACTIVE DAY */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-black text-white flex items-center gap-2">
-                  <Dumbbell className="w-4 h-4 text-[#9CFF00]" />
-                  وجبات يوم ({daysNames[activeDayIndex].ar}) — (5 وجبات يومياً):
-                </h3>
-              </div>
+              {currentDayMeals.map((meal, mIdx) => (
+                <div
+                  key={meal.id}
+                  className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-5 space-y-3 shadow-xl hover:border-[#9CFF00]/40 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#9CFF00] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#9CFF00]" />
+                      {meal.titleAr}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono bg-[#0D0D0D] px-2.5 py-1 rounded-xl border border-[#262626]">
+                      {meal.totalCalories} kcal | P: {meal.totalProtein}g | C: {meal.totalCarbs}g
+                    </span>
+                  </div>
 
-              {currentDayMeals.map((meal, idx) => {
-                const item = meal.items[0];
-                const p = item?.protein || meal.totalProtein || 0;
-                const c = item?.carbs || meal.totalCarbs || 0;
-                const f = item?.fats || meal.totalFats || 0;
-                const exactCal = Math.round((p * 4) + (c * 4) + (f * 9));
-
-                return (
-                  <div key={meal.id} className="bg-[#161616] border border-[#2A2A2A] rounded-2xl p-4 space-y-2">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-                      <span className="text-xs font-bold text-white">{meal.titleAr}</span>
-                      <span className="text-[10px] text-[#9CFF00] font-mono font-bold bg-[#0A0A0A] px-2.5 py-1 rounded-xl border border-[#262626]">
-                        {exactCal} kcal | P:{p}g C:{c}g F:{f}g
-                      </span>
-                    </div>
-
-                    <textarea
-                      rows={2}
+                  <div>
+                    <input
+                      type="text"
                       value={meal.items[0]?.foodNameAr || ''}
-                      onChange={(e) => handleUpdateMealText(idx, e.target.value)}
-                      placeholder="اكتب تفاصيل الوجبة والكميات بنفسك.. (مثال: 60ج شوفان + 4 بياض بيض + 1 بيضة كاملة)"
-                      className="w-full bg-[#0A0A0A] border border-[#262626] focus:border-[#9CFF00] text-white rounded-xl p-3 text-xs outline-none resize-none"
+                      onChange={(e) => handleUpdateMealText(mIdx, e.target.value)}
+                      placeholder="اكتب أطعمة هذه الوجبة هنا بالتفصيل..."
+                      className="w-full bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-xs rounded-2xl p-3 outline-none font-medium"
                     />
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
-            {/* Save & Export Buttons */}
-            <div className="pt-4 flex items-center justify-end gap-3">
-              <button
-                onClick={() => setCurrentView('list')}
-                className="px-5 py-3 rounded-2xl bg-[#222222] text-gray-300 text-xs font-bold cursor-pointer"
-              >
-                رجوع للقائمة
-              </button>
-              <button
-                onClick={() => setCurrentView('pdf')}
-                className="px-6 py-3 rounded-2xl bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black text-xs shadow-[0_0_20px_rgba(156,255,0,0.4)] cursor-pointer flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4 stroke-[2.5]" />
-                <span>حفظ وتصدير PDF الأسبوعي 📄</span>
-              </button>
+            {/* WORKOUT EXERCISES FOR ACTIVE DAY */}
+            <div className="bg-[#141414] border border-[#262626] rounded-3xl p-5 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-[#222222] pb-3">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="w-5 h-5 text-[#9CFF00]" />
+                  <h3 className="text-base font-extrabold text-white">
+                    جدول تمارين يوم ({currentDaysSchedule[activeDayIndex]?.dayNameAr})
+                  </h3>
+                </div>
+                <button
+                  onClick={() => handleAddExercise(activeDayIndex)}
+                  className="bg-[#9CFF00] hover:bg-[#8BE600] text-black px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>إضافة تمرين +</span>
+                </button>
+              </div>
+
+              {(!currentDaysSchedule[activeDayIndex]?.exercises || currentDaysSchedule[activeDayIndex]?.exercises?.length === 0) ? (
+                <div className="text-center py-6 text-xs text-gray-500 bg-[#0D0D0D] border border-[#222] rounded-2xl">
+                  لا يوجد تمارين مضافة لهذا اليوم بعد. اضغط "إضافة تمرين +" لإضافة تمارين اليوم.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {currentDaysSchedule[activeDayIndex]?.exercises?.map((ex, exIdx) => (
+                    <div 
+                      key={ex.id || exIdx}
+                      className="bg-[#0D0D0D] border border-[#222222] hover:border-[#9CFF00]/40 rounded-2xl p-3.5 space-y-2.5 transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="w-6 h-6 rounded-lg bg-[#9CFF00]/10 border border-[#9CFF00]/30 text-[#9CFF00] font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                          #{exIdx + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={ex.nameAr}
+                          onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'nameAr', e.target.value)}
+                          placeholder="اسم التمرين (مثال: بنش بريس مستوي بالبار)..."
+                          className="w-full bg-[#141414] border border-[#222222] focus:border-[#9CFF00] text-white text-xs font-bold rounded-xl py-1.5 px-3 outline-none"
+                        />
+                        <button
+                          onClick={() => handleDeleteExercise(activeDayIndex, exIdx)}
+                          className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl transition-all shrink-0 cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-xs font-mono">
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-0.5">الجولات (Sets):</label>
+                          <input
+                            type="number"
+                            value={ex.sets}
+                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'sets', parseInt(e.target.value) || 1)}
+                            className="w-full bg-[#141414] border border-[#222] focus:border-[#9CFF00] text-white text-xs text-center py-1 rounded-lg outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-0.5">التكرارات (Reps):</label>
+                          <input
+                            type="text"
+                            value={ex.reps}
+                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'reps', e.target.value)}
+                            placeholder="10-12"
+                            className="w-full bg-[#141414] border border-[#222] focus:border-[#9CFF00] text-white text-xs text-center py-1 rounded-lg outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-0.5">الراحة (ثانية):</label>
+                          <input
+                            type="number"
+                            value={ex.restSeconds || 60}
+                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'restSeconds', parseInt(e.target.value) || 60)}
+                            className="w-full bg-[#141414] border border-[#222] focus:border-[#9CFF00] text-white text-xs text-center py-1 rounded-lg outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <input
+                        type="text"
+                        value={ex.notes || ''}
+                        onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'notes', e.target.value)}
+                        placeholder="ملاحظات التكنيك (مثال: النزول بطيء والتركيز على العصر العضلي)..."
+                        className="w-full bg-[#141414] border border-[#222] focus:border-[#9CFF00] text-gray-300 text-[11px] py-1.5 px-3 rounded-xl outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* VIEW 3: BRANDED PDF EXPORT */}
+        {/* VIEW 3: PDF EXPORT VIEW */}
         {currentView === 'pdf' && selectedTrainee && (
           <PdfExportView
             trainee={selectedTrainee}
             plan={activePlan}
             coachProfile={coachProfile}
-            onBack={() => setCurrentView('plan')}
+            onBack={() => setCurrentView('list')}
           />
         )}
+
       </main>
 
-      {/* CUSTOM CONFIRM DELETE MODAL */}
+      {/* CONFIRM DELETE MODAL */}
       {traineeToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-          <div className="bg-[#161616] border border-red-500/30 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/30 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-7 h-7" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#161616] border border-red-500/30 rounded-3xl w-full max-w-sm p-6 space-y-4 text-center shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 mx-auto flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6" />
             </div>
 
             <div>
-              <h3 className="text-base font-black text-white">مسح المشترك ({traineeToDelete.name})</h3>
-              <p className="text-xs text-gray-400 mt-1">هل أنت تأكد من إلغاء وتأكيد مسح هذا المشترك ونظامه النهائيات؟</p>
+              <h3 className="text-base font-black text-white">تأكيد مسح المشترك</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                هل أنت تأكد من مسح حساب المشترك <span className="text-white font-bold">"{traineeToDelete.name}"</span> والنظام الخاص به نهائياً؟
+              </p>
             </div>
 
-            <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setTraineeToDelete(null)}
-                className="w-1/2 py-2.5 rounded-xl bg-[#222222] text-gray-300 text-xs font-bold cursor-pointer hover:bg-[#333333]"
+                className="w-1/2 py-2.5 rounded-xl bg-[#262626] text-gray-300 text-xs font-bold transition-colors cursor-pointer"
               >
                 إلغاء
               </button>
-
               <button
                 onClick={confirmDeleteTrainee}
-                className="w-1/2 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs shadow-lg cursor-pointer transition-all"
+                className="w-1/2 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-black transition-colors cursor-pointer"
               >
-                تأكيد المسح 🗑️
+                مسح المشترك 🗑️
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ADD NEW TRAINEE MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
-              <h3 className="text-base font-black text-white">إضافة مشترك جديد</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* ADD NEW TRAINEE MODAL COMPONENT */}
+      <AddTraineeModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAddTrainee={handleAddTraineeFromModal}
+      />
 
-            <form onSubmit={handleAddTrainee} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-gray-300 font-bold mb-1">اسم المشترك *</label>
-                <input
-                  type="text"
-                  required
-                  value={newTraineeName}
-                  onChange={(e) => setNewTraineeName(e.target.value)}
-                  placeholder="مثال: محمود علي"
-                  className="w-full bg-[#0A0A0A] border border-[#262626] focus:border-[#9CFF00] text-white rounded-xl p-3 outline-none"
-                />
-              </div>
+      </div>
 
-              <div>
-                <label className="block text-gray-300 font-bold mb-1">رقم الهاتف / الواتساب</label>
-                <input
-                  type="text"
-                  dir="ltr"
-                  value={newTraineePhone}
-                  onChange={(e) => setNewTraineePhone(e.target.value)}
-                  placeholder="+20 100 000 0000"
-                  className="w-full bg-[#0A0A0A] border border-[#262626] text-white font-mono rounded-xl p-3 outline-none text-left"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-300 font-bold mb-1">الوزن (كجم)</label>
-                  <input
-                    type="number"
-                    value={newTraineeWeight}
-                    onChange={(e) => setNewTraineeWeight(Number(e.target.value))}
-                    className="w-full bg-[#0A0A0A] border border-[#262626] text-[#9CFF00] font-black rounded-xl p-3 outline-none text-center"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-300 font-bold mb-1">الطول (سم)</label>
-                  <input
-                    type="number"
-                    value={newTraineeHeight}
-                    onChange={(e) => setNewTraineeHeight(Number(e.target.value))}
-                    className="w-full bg-[#0A0A0A] border border-[#262626] text-white font-bold rounded-xl p-3 outline-none text-center"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-300 font-bold mb-1">الهدف (Goal)</label>
-                <input
-                  type="text"
-                  value={newTraineeGoal}
-                  onChange={(e) => setNewTraineeGoal(e.target.value)}
-                  placeholder="مثال: تنشيف وحرق دهون"
-                  className="w-full bg-[#0A0A0A] border border-[#262626] text-white rounded-xl p-3 outline-none"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-[#262626] flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-[#222222] text-gray-300 font-bold cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#9CFF00] text-black font-black shadow-[0_0_15px_rgba(156,255,0,0.3)] cursor-pointer"
-                >
-                  حفظ المشترك
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* FOOTER */}
+      <Footer className="mt-6" />
     </div>
   );
 }

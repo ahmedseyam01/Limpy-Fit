@@ -274,23 +274,40 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
               key={day.dayIndex} 
               className={`${isLastDay ? '' : 'pdf-page-break'} border border-[#242424] rounded-3xl p-6 sm:p-8 pt-12 sm:pt-16 mt-6 bg-[#0D0D0D] space-y-4`}
             >
-              {/* Day Header Bar matching Screenshot 3 */}
-              <div className="flex items-center justify-between border-b-2 border-[#9CFF00] pb-3">
-                <div className="bg-[#141414] border border-[#262626] px-3 py-1 rounded-xl font-mono text-[11px] text-[#9CFF00] font-bold text-center">
-                  <div>{dayCal} kcal | P: {Math.round(dayP)}g | C: {Math.round(dayC)}g | F: {Math.round(dayF)}g</div>
+              {/* Day Header Bar matching Screenshot 3 - Responsive for Mobile */}
+              <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-[#9CFF00] pb-3">
+                <div className="bg-[#141414] border border-[#262626] px-3 py-1.5 rounded-xl font-mono text-[10px] sm:text-[11px] text-[#9CFF00] font-bold text-center w-full sm:w-auto">
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
+                    <span>{dayCal} kcal</span>
+                    <span className="text-gray-600">|</span>
+                    <span>P: {Math.round(dayP)}g</span>
+                    <span className="text-gray-600">|</span>
+                    <span>C: {Math.round(dayC)}g</span>
+                    <span className="text-gray-600">|</span>
+                    <span>F: {Math.round(dayF)}g</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                   <div className="text-right">
-                    <h2 className="text-lg font-black text-white">
+                    <h2 className="text-base sm:text-lg font-black text-white">
                       جدول وجبات يوم ({day.dayNameAr})
                     </h2>
                     <span className="text-[10px] text-gray-400 font-mono block">{day.dayNameEn} Meal Schedule</span>
                   </div>
-                  <div className="w-9 h-9 rounded-full bg-[#9CFF00] text-black font-black text-sm flex items-center justify-center shadow-[0_0_12px_#9CFF00]">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#9CFF00] text-black font-black text-xs sm:text-sm flex items-center justify-center shadow-[0_0_12px_#9CFF00] shrink-0">
                     #{day.dayIndex + 1}
                   </div>
                 </div>
+              </div>
+
+              {/* Daily Workout Focus Banner in PDF */}
+              <div className="bg-[#0A0A0A] border border-[#262626] p-2.5 rounded-xl flex items-center justify-between text-xs font-bold my-3">
+                <span className="text-[#9CFF00] flex items-center gap-1.5 font-mono">
+                  <span>🏋️‍♂️</span>
+                  <span>WORKOUT FOCUS:</span>
+                </span>
+                <span className="text-white font-extrabold">{day.workoutFocus || 'راحة تامة واستشفاء'}</span>
               </div>
 
               {/* 5 Meal Cards */}
@@ -325,10 +342,44 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                 })}
               </div>
 
-              {/* Page Footer matching Screenshot 3 */}
-              <div className="pt-3 border-t border-[#222222] flex items-center justify-between text-[10px] text-gray-500 font-mono">
-                <span>صفحة يوم ({day.dayNameAr})</span>
-                <span>{coachProfile.brandName} — {trainee.name}</span>
+              {/* Daily Exercises Table in PDF */}
+              {day.exercises && day.exercises.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-[#222222] space-y-2">
+                  <h4 className="text-xs font-black text-white flex items-center justify-between">
+                    <span className="text-[#9CFF00]">🏋️‍♂️ جدول تمارين اليوم ({day.dayNameAr})</span>
+                    <span className="font-mono text-[10px] text-gray-400">{day.exercises.length} تمارين</span>
+                  </h4>
+                  
+                  <div className="space-y-1.5">
+                    {day.exercises.map((ex, exIdx) => (
+                      <div key={ex.id || exIdx} className="bg-[#0A0A0A] border border-[#222222] p-2 rounded-xl text-right flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-md bg-[#9CFF00]/10 text-[#9CFF00] font-mono text-[10px] font-bold flex items-center justify-center">
+                            #{exIdx + 1}
+                          </span>
+                          <span className="font-bold text-white">{ex.nameAr}</span>
+                        </div>
+                        <div className="flex items-center gap-3 font-mono text-[11px] text-gray-300">
+                          <span>{ex.sets} جولات × {ex.reps}</span>
+                          {ex.restSeconds && <span className="text-gray-500">({ex.restSeconds}ث راحة)</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Page Footer matching requested Copyright & Credits */}
+              <div className="pt-4 mt-6 border-t border-[#222222] flex flex-col items-center justify-center text-center space-y-0.5 text-gray-400 font-sans select-none">
+                <div className="text-xs font-black text-white tracking-widest uppercase font-mono">
+                  LIMBY FIT © 2026
+                </div>
+                <div className="text-[11px] font-semibold text-gray-300">
+                  Designed & Developed by <span className="text-[#9CFF00] font-black">Ahmed Seyam</span>
+                </div>
+                <div className="text-[9px] text-gray-500 font-mono tracking-widest uppercase">
+                  All Rights Reserved
+                </div>
               </div>
             </div>
           );
