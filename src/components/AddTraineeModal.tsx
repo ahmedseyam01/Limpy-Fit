@@ -22,6 +22,7 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   const [workoutDays, setWorkoutDays] = useState<number | string>(5);
   const [notes, setNotes] = useState('');
 
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
   const [isManualEmail, setIsManualEmail] = useState(false);
