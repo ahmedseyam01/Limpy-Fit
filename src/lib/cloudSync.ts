@@ -1,6 +1,8 @@
 import { Trainee, DietPlan, CoachProfile } from '../types/nutrition';
 
-const CLOUD_SYNC_ENDPOINT = 'https://api.restful-api.dev/objects/ff8081819ff5b110019ffca18b3114bd';
+const PRIMARY_SYNC_ENDPOINT = '/api/sync';
+const FALLBACK_SYNC_ENDPOINT = 'https://limpy-fit.vercel.app/api/sync';
+const RESTFUL_API_FALLBACK = 'https://api.restful-api.dev/objects/ff8081819ff5b110019ffca18b3114bd';
 
 export interface CloudPayload {
   trainees: Trainee[];
@@ -12,22 +14,36 @@ export interface CloudPayload {
 let lastSyncTimestamp = 0;
 let isPushing = false;
 
+const getEndpoints = () => {
+  const currentHost = typeof window !== 'undefined' ? window.location.origin : '';
+  const endpoints = [PRIMARY_SYNC_ENDPOINT];
+  if (currentHost && !currentHost.includes('limpy-fit.vercel.app')) {
+    endpoints.push(FALLBACK_SYNC_ENDPOINT);
+  }
+  endpoints.push(RESTFUL_API_FALLBACK);
+  return endpoints;
+};
+
 /**
  * Fetches the latest global cloud data across all devices
  */
 export async function fetchCloudData(): Promise<CloudPayload | null> {
-  try {
-    const res = await fetch(CLOUD_SYNC_ENDPOINT, { 
-      cache: 'no-store',
-      headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (json && json.data) {
-      return json.data as CloudPayload;
+  const endpoints = getEndpoints();
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, { 
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) continue;
+      const json = await res.json();
+      const payload = json.data || json;
+      if (payload && (payload.trainees || payload.lastUpdated)) {
+        return payload as CloudPayload;
+      }
+    } catch (err) {
+      // try next endpoint fallback
     }
-  } catch (err) {
-    console.warn('Cloud sync fetch error:', err);
   }
   return null;
 }
@@ -53,18 +69,31 @@ export async function pushCloudData(
       lastUpdated: timestamp
     };
 
-    const res = await fetch(CLOUD_SYNC_ENDPOINT, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'LimpyFitDataStore',
-        data: payload
-      })
+    const body = JSON.stringify({
+      name: 'LimpyFitDataStore',
+      data: payload
     });
-    return res.ok;
-  } catch (err) {
-    console.warn('Cloud sync push error:', err);
-    return false;
+
+    const endpoints = getEndpoints();
+    let success = false;
+
+    for (const endpoint of endpoints) {
+      try {
+        const method = endpoint.includes('api.restful-api.dev') ? 'PUT' : 'POST';
+        const res = await fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body
+        });
+        if (res.ok) {
+          success = true;
+          break;
+        }
+      } catch (err) {
+        // try next endpoint fallback
+      }
+    }
+    return success;
   } finally {
     isPushing = false;
   }
@@ -91,8 +120,8 @@ export function initCloudAutoSync(
   // Perform immediate initial check
   checkCloudUpdates();
 
-  // Poll every 3 seconds for fast real-time sync across mobile & desktop
-  const intervalId = setInterval(checkCloudUpdates, 3000);
+  // Poll every 2 seconds for fast real-time auto sync across mobile & desktop
+  const intervalId = setInterval(checkCloudUpdates, 2000);
 
   // Sync immediately when user switches tabs or focuses window on phone/laptop
   const handleFocus = () => checkCloudUpdates();

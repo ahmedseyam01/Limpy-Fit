@@ -10,7 +10,7 @@ import { Navbar } from './components/Navbar';
 import { LoginModal } from './components/LoginModal';
 import { TraineePortalView } from './components/TraineePortalView';
 import { AddTraineeModal } from './components/AddTraineeModal';
-import { SyncModal } from './components/SyncModal';
+
 import { SettingsView } from './components/SettingsView';
 import { Footer } from './components/Footer';
 import {
@@ -90,29 +90,11 @@ export function App() {
   const [selectedTraineeId, setSelectedTraineeId] = useState<string>(trainees[0]?.id || '');
   const [activeDayIndex, setActiveDayIndex] = useState<number>(0);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showSyncModal, setShowSyncModal] = useState(false);
   const [copiedNotification, setCopiedNotification] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Custom Delete Confirmation Modal State
   const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
-
-  // Import Data Handler from Sync Modal
-  const handleImportData = (importedTrainees: Trainee[], importedPlans: DietPlan[], importedProfile?: CoachProfile) => {
-    if (importedTrainees && importedTrainees.length > 0) {
-      setTrainees(importedTrainees);
-      localStorage.setItem('limby_trainees', JSON.stringify(importedTrainees));
-    }
-    if (importedPlans && importedPlans.length > 0) {
-      setDietPlans(importedPlans);
-      localStorage.setItem('limby_plans', JSON.stringify(importedPlans));
-    }
-    if (importedProfile) {
-      setCoachProfile(importedProfile);
-      localStorage.setItem('limby_coach_profile', JSON.stringify(importedProfile));
-    }
-    setShowSyncModal(false);
-  };
 
   // Days list
   const daysNames = [
@@ -496,7 +478,6 @@ export function App() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         onOpenAddModal={() => setShowAddModal(true)}
-        onOpenSyncModal={() => setShowSyncModal(true)}
         onLogout={handleLogout}
       />
 
@@ -970,16 +951,7 @@ export function App() {
         onAddTrainee={handleAddTraineeFromModal}
       />
 
-      {/* SYNC & DATA TRANSFER MODAL */}
-      {showSyncModal && (
-        <SyncModal
-          trainees={trainees}
-          dietPlans={dietPlans}
-          coachProfile={coachProfile}
-          onImportData={handleImportData}
-          onClose={() => setShowSyncModal(false)}
-        />
-      )}
+
 
       </div>
 

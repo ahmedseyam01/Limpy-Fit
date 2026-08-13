@@ -111,16 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
 
-              {onOpenSyncModal && (
-                <button
-                  onClick={onOpenSyncModal}
-                  className="bg-[#1C1C1C] hover:bg-[#262626] text-[#9CFF00] border border-[#9CFF00]/40 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0 active:scale-95"
-                  title="المزامنة ونقل البيانات بين الأجهزة"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>مزامنة 🔄</span>
-                </button>
-              )}
+
 
               {onOpenAddModal && (
                 <button
