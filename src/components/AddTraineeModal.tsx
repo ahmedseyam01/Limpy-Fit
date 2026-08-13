@@ -109,8 +109,8 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3.5 sm:p-4 overflow-y-auto min-h-screen">
-      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl relative my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3.5 sm:p-4 overflow-y-auto no-scrollbar min-h-screen">
+      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto no-scrollbar shadow-2xl relative my-auto">
         
         {/* Sticky Top Header Bar (100% Mobile Ready) */}
         <div className="sticky top-0 z-30 bg-[#161616]/95 backdrop-blur-md px-3.5 sm:px-6 py-3 border-b border-[#262626] flex items-center justify-between gap-2 rounded-t-3xl">

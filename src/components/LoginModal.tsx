@@ -90,9 +90,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#050505]/95 backdrop-blur-md p-3.5 sm:p-6 flex items-center justify-center min-h-screen py-6">
+    <div className="fixed inset-0 z-50 overflow-y-auto no-scrollbar bg-[#050505]/95 backdrop-blur-md p-3.5 sm:p-6 flex items-center justify-center min-h-screen py-6">
       {/* Container */}
-      <div className="w-full max-w-md bg-[#161616] border border-[#2A2A2A] rounded-3xl p-4 sm:p-7 shadow-2xl relative max-h-[92vh] overflow-y-auto my-auto">
+      <div className="w-full max-w-md bg-[#161616] border border-[#2A2A2A] rounded-3xl p-4 sm:p-7 shadow-2xl relative max-h-[92vh] overflow-y-auto no-scrollbar my-auto">
         {/* Glow backdrops */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#9CFF00]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#9CFF00]/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -263,7 +263,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
             </button>
           </form>
         )}
-
+        
         {/* Pure English Clean Footer */}
         <div className="mt-4 sm:mt-5 pt-3 border-t border-[#222222] text-center space-y-0.5 pb-0.5" dir="ltr">
           <div className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-mono font-bold text-white tracking-widest uppercase">

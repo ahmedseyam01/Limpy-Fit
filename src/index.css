@@ -7,6 +7,14 @@
     background-color: #0A0A0A;
     color: #E5E7EB;
     font-family: 'Cairo', 'Montserrat', sans-serif;
+    touch-action: manipulation;
+  }
+
+  /* Prevent mobile browsers (especially iOS Safari) from zooming in when focusing inputs */
+  @media screen and (max-width: 768px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -27,6 +35,15 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9CFF00;
+}
+
+/* Hide Scrollbar Utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Glow effects */

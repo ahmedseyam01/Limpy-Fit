@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { CoachProfile } from '../types/nutrition';
-import { Settings, ShieldCheck, Sparkles, Phone, Instagram, Check, Save } from 'lucide-react';
+import { Settings, ShieldCheck, Sparkles, Phone, Instagram, Check, Save, Cloud } from 'lucide-react';
 import { LimbyLogo } from './LimbyLogo';
+import { getStoredFirebaseConfig, saveFirebaseConfig, removeFirebaseConfig, isFirebaseConnected } from '../lib/firebase';
 
 interface SettingsViewProps {
   coachProfile: CoachProfile;
@@ -188,6 +189,151 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             >
               <Save className="w-4 h-4 stroke-[2.5]" />
               <span>حفظ التعديلات والتطبيق المباشر</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {/* Firebase Cloud Sync Settings Panel */}
+      <CloudSyncConfigPanel />
+    </div>
+  );
+};
+
+// Sub-component for Firebase Cloud Sync Settings
+const CloudSyncConfigPanel: React.FC = () => {
+  const [config, setConfig] = useState(() => getStoredFirebaseConfig() || { apiKey: '', projectId: '', authDomain: '', storageBucket: '', appId: '' });
+  const [connected, setConnected] = useState(() => isFirebaseConnected());
+  const [syncSaved, setSyncSaved] = useState(false);
+
+  const handleSaveConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!config.apiKey || !config.projectId) {
+      alert('يرجى إدخال API Key و Project ID على الأقل للربط السحابي');
+      return;
+    }
+    const success = saveFirebaseConfig(config);
+    setConnected(isFirebaseConnected());
+    setSyncSaved(true);
+    setTimeout(() => setSyncSaved(false), 3000);
+  };
+
+  const handleDisconnect = () => {
+    removeFirebaseConfig();
+    setConfig({ apiKey: '', projectId: '', authDomain: '', storageBucket: '', appId: '' });
+    setConnected(false);
+  };
+
+  return (
+    <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-[#262626]">
+        <div>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Cloud className="w-4 h-4 text-[#9CFF00]" />
+            <span>المزامنة السحابية الفورية (Firebase Cloud Sync)</span>
+          </h3>
+          <p className="text-xs text-gray-400 mt-1">
+            ربط التطبيق بالسحابة لكي تظهر التعديلات والمتدربين فوراً بين الهاتف واللابتوب
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {connected ? (
+            <span className="bg-[#9CFF00]/10 border border-[#9CFF00]/40 text-[#9CFF00] font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#9CFF00] animate-pulse"></span>
+              متصل بالسحابة (Cloud Active)
+            </span>
+          ) : (
+            <span className="bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+              تخزين محلي فقط (Local Storage Only)
+            </span>
+          )}
+        </div>
+      </div>
+
+      {syncSaved && (
+        <div className="bg-[#9CFF00]/10 border border-[#9CFF00]/40 text-[#9CFF00] font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2">
+          <Check className="w-4 h-4" />
+          <span>تم حفظ إعدادات المزامنة السحابية بنجاح! يتم الآن المزامنة التلقائية.</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSaveConfig} className="space-y-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-300 mb-1">Firebase API Key *</label>
+            <input
+              type="text"
+              dir="ltr"
+              required
+              placeholder="AIzaSy..."
+              value={config.apiKey}
+              onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
+              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] text-white font-mono rounded-xl p-2.5 text-xs outline-none text-left focus:border-[#9CFF00]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-300 mb-1">Firebase Project ID *</label>
+            <input
+              type="text"
+              dir="ltr"
+              required
+              placeholder="limby-fit-app"
+              value={config.projectId}
+              onChange={(e) => setConfig({ ...config, projectId: e.target.value })}
+              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] text-white font-mono rounded-xl p-2.5 text-xs outline-none text-left focus:border-[#9CFF00]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-300 mb-1">Auth Domain (اختياري)</label>
+            <input
+              type="text"
+              dir="ltr"
+              placeholder="limby-fit-app.firebaseapp.com"
+              value={config.authDomain || ''}
+              onChange={(e) => setConfig({ ...config, authDomain: e.target.value })}
+              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] text-white font-mono rounded-xl p-2.5 text-xs outline-none text-left focus:border-[#9CFF00]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-300 mb-1">Storage Bucket (اختياري)</label>
+            <input
+              type="text"
+              dir="ltr"
+              placeholder="limby-fit-app.appspot.com"
+              value={config.storageBucket || ''}
+              onChange={(e) => setConfig({ ...config, storageBucket: e.target.value })}
+              className="w-full bg-[#0A0A0A] border border-[#2A2A2A] text-white font-mono rounded-xl p-2.5 text-xs outline-none text-left focus:border-[#9CFF00]"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="text-[11px] text-gray-400">
+            * يمكنك الحصول على هذه البيانات مجاناً من <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-[#9CFF00] underline">Firebase Console</a>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {connected && (
+              <button
+                type="button"
+                onClick={handleDisconnect}
+                className="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer"
+              >
+                فصل السحابة
+              </button>
+            )}
+
+            <button
+              type="submit"
+              className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(156,255,0,0.2)]"
+            >
+              <Cloud className="w-4 h-4 stroke-[2.5]" />
+              <span>تفعيل المزامنة السحابية</span>
             </button>
           </div>
         </div>

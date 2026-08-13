@@ -10,7 +10,18 @@ import { Navbar } from './components/Navbar';
 import { LoginModal } from './components/LoginModal';
 import { TraineePortalView } from './components/TraineePortalView';
 import { AddTraineeModal } from './components/AddTraineeModal';
+import { SettingsView } from './components/SettingsView';
 import { Footer } from './components/Footer';
+import {
+  subscribeToCloudTrainees,
+  syncTraineeToCloud,
+  deleteTraineeFromCloud,
+  subscribeToCloudDietPlans,
+  syncPlanToCloud,
+  deletePlanFromCloud,
+  subscribeToCloudCoachProfile,
+  syncCoachProfileToCloud
+} from './lib/firebase';
 import {
   UserPlus,
   Trash2,
@@ -102,6 +113,33 @@ export function App() {
   useEffect(() => {
     localStorage.setItem('limby_plans', JSON.stringify(dietPlans));
   }, [dietPlans]);
+
+  // Real-time Firebase Cloud Data Listeners
+  useEffect(() => {
+    const unsubTrainees = subscribeToCloudTrainees((cloudTrainees) => {
+      if (cloudTrainees && cloudTrainees.length > 0) {
+        setTrainees(cloudTrainees);
+      }
+    });
+
+    const unsubPlans = subscribeToCloudDietPlans((cloudPlans) => {
+      if (cloudPlans && cloudPlans.length > 0) {
+        setDietPlans(cloudPlans);
+      }
+    });
+
+    const unsubProfile = subscribeToCloudCoachProfile((cloudProfile) => {
+      if (cloudProfile) {
+        setCoachProfile(cloudProfile);
+      }
+    });
+
+    return () => {
+      unsubTrainees();
+      unsubPlans();
+      unsubProfile();
+    };
+  }, []);
 
   // Handle Admin Login
   const handleAdminLogin = () => {
@@ -304,6 +342,7 @@ export function App() {
       }
       return [plan, ...prev];
     });
+    syncPlanToCloud(plan);
   };
 
   // Add Trainee Handler
@@ -311,6 +350,7 @@ export function App() {
     const updatedTrainees = [newTrainee, ...trainees];
     setTrainees(updatedTrainees);
     localStorage.setItem('limby_trainees', JSON.stringify(updatedTrainees));
+    syncTraineeToCloud(newTrainee);
 
     setSelectedTraineeId(newTrainee.id);
     setShowAddModal(false);
@@ -330,6 +370,9 @@ export function App() {
 
     localStorage.setItem('limby_trainees', JSON.stringify(updatedTrainees));
     localStorage.setItem('limby_plans', JSON.stringify(updatedPlans));
+
+    deleteTraineeFromCloud(targetId);
+    deletePlanFromCloud(targetId);
 
     if (selectedTraineeId === targetId && updatedTrainees.length > 0) {
       setSelectedTraineeId(updatedTrainees[0].id);
@@ -388,6 +431,7 @@ export function App() {
         onLogout={handleLogout}
         onUpdateTraineeProgress={(updatedTrainee) => {
           setTrainees(prev => prev.map(t => t.id === updatedTrainee.id ? updatedTrainee : t));
+          syncTraineeToCloud(updatedTrainee);
         }}
         onViewPdf={() => setCurrentView('pdf')}
       />
@@ -819,6 +863,18 @@ export function App() {
             plan={activePlan}
             coachProfile={coachProfile}
             onBack={() => setCurrentView('list')}
+          />
+        )}
+
+        {/* VIEW 4: SETTINGS VIEW */}
+        {currentView === 'settings' && (
+          <SettingsView
+            coachProfile={coachProfile}
+            onUpdateProfile={(updatedProfile) => {
+              setCoachProfile(updatedProfile);
+              localStorage.setItem('limby_coach_profile', JSON.stringify(updatedProfile));
+              syncCoachProfileToCloud(updatedProfile);
+            }}
           />
         )}
 
