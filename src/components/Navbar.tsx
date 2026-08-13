@@ -1,5 +1,4 @@
-import React from 'react';
-import { UserPlus, ArrowRight, FileText, LogOut, ShieldCheck } from 'lucide-react';
+import { UserPlus, ArrowRight, FileText, LogOut, ShieldCheck, RefreshCw } from 'lucide-react';
 import { CoachProfile } from '../types/nutrition';
 
 interface NavbarProps {
@@ -7,6 +6,7 @@ interface NavbarProps {
   currentView?: 'list' | 'plan' | 'pdf' | 'settings';
   setCurrentView?: (view: 'list' | 'plan' | 'pdf' | 'settings') => void;
   onOpenAddModal?: () => void;
+  onOpenSyncModal?: () => void;
   onLogout?: () => void;
   // Trainee View Props
   isTraineeView?: boolean;
@@ -19,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentView = 'list',
   setCurrentView,
   onOpenAddModal,
+  onOpenSyncModal,
   onLogout,
   isTraineeView = false,
   traineeName,
@@ -107,6 +108,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <ArrowRight className="w-3.5 h-3.5 text-[#9CFF00]" />
                   <span className="hidden sm:inline">المشتركين</span>
                   <span className="sm:hidden">قائمة</span>
+                </button>
+              )}
+
+              {onOpenSyncModal && (
+                <button
+                  onClick={onOpenSyncModal}
+                  className="bg-[#1C1C1C] hover:bg-[#262626] text-[#9CFF00] border border-[#9CFF00]/40 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0 active:scale-95"
+                  title="المزامنة ونقل البيانات بين الأجهزة"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>مزامنة 🔄</span>
                 </button>
               )}
 
