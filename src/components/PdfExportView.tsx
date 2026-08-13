@@ -176,62 +176,73 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
 
 
         {/* ==================== PAGE 2: NUTRITION SUMMARY PAGE (مع مسافة علوية كبيرة واسعة) ==================== */}
-        <div className="pdf-page-break border border-[#242424] rounded-3xl p-6 sm:p-8 pt-12 sm:pt-16 mt-6 bg-[#0D0D0D] space-y-6">
+        <div className="pdf-page-break border border-[#242424] rounded-3xl p-4 sm:p-8 pt-8 sm:pt-16 mt-6 bg-[#0D0D0D] space-y-6">
           {/* Header */}
           <div className="text-right pb-3 border-b border-[#222222]">
-            <h2 className="text-lg sm:text-xl font-black text-white flex items-center justify-end gap-2">
+            <h2 className="text-base sm:text-xl font-black text-white flex items-center justify-end gap-2">
               <span>الاحتياج اليومي للماكروز والسعرات (Nutrition Summary)</span>
-              <Flame className="w-5 h-5 text-[#9CFF00]" />
+              <Flame className="w-5 h-5 text-[#9CFF00] shrink-0" />
             </h2>
           </div>
 
-          {/* Top 4 Macro Cards Row */}
-          <div className="grid grid-cols-4 gap-3">
-            <div className="bg-[#141414] border-2 border-[#9CFF00] rounded-2xl p-4 text-center shadow-[0_0_15px_rgba(156,255,0,0.15)]">
-              <span className="text-xs text-gray-400 font-bold block">إجمالي السعرات</span>
-              <span className="text-2xl sm:text-3xl font-black text-[#9CFF00] block mt-1">{displayCalories}</span>
+          {/* Top 4 Macro Cards Row (2 cols on mobile, 4 on desktop & print) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="bg-[#141414] border-2 border-[#9CFF00] rounded-2xl p-3 sm:p-4 text-center shadow-[0_0_15px_rgba(156,255,0,0.15)]">
+              <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">إجمالي السعرات</span>
+              <span className="text-xl sm:text-3xl font-black text-[#9CFF00] block mt-1">{displayCalories}</span>
               <span className="text-[9px] text-gray-500 font-mono">kcal / day</span>
             </div>
 
-            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-4 text-center">
-              <span className="text-xs text-gray-400 font-bold block">البروتين اليومي</span>
-              <span className="text-2xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayProtein)}g</span>
+            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3 sm:p-4 text-center">
+              <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">البروتين اليومي</span>
+              <span className="text-xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayProtein)}g</span>
               <span className="text-[9px] text-blue-400 font-mono">Protein Target</span>
             </div>
 
-            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-4 text-center">
-              <span className="text-xs text-gray-400 font-bold block">النشويات اليومية</span>
-              <span className="text-2xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayCarbs)}g</span>
+            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3 sm:p-4 text-center">
+              <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">النشويات اليومية</span>
+              <span className="text-xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayCarbs)}g</span>
               <span className="text-[9px] text-emerald-400 font-mono">Carbs Target</span>
             </div>
 
-            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-4 text-center">
-              <span className="text-xs text-gray-400 font-bold block">الدهون الصحية</span>
-              <span className="text-2xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayFats)}g</span>
+            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3 sm:p-4 text-center">
+              <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">الدهون الصحية</span>
+              <span className="text-xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayFats)}g</span>
               <span className="text-[9px] text-amber-400 font-mono">Healthy Fats</span>
             </div>
           </div>
 
-          {/* Middle 2 Cards: Hydration & Supplements */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Middle 2 Cards: Hydration & Supplements (1 col on mobile, 2 on desktop & print) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4">
             <div className="bg-[#141414] border border-[#222222] p-4 rounded-2xl space-y-3">
-              <h3 className="text-xs font-bold text-white flex items-center justify-end gap-1.5">
-                <span>قواعد وشرب الماء (Hydration & Rules)</span>
-                <ShieldCheck className="w-4 h-4 text-[#9CFF00]" />
+              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center justify-end gap-1.5 flex-wrap">
+                <span className="font-mono text-[#9CFF00] text-[10px] sm:text-xs font-semibold">(Hydration & Rules)</span>
+                <span>قواعد وإرشادات التغذية</span>
+                <ShieldCheck className="w-4 h-4 text-[#9CFF00] shrink-0" />
               </h3>
-              <ul className="space-y-2 text-xs text-gray-300 text-right">
-                <li className="flex items-center justify-end gap-2"><span>ناول {plan.hydrationLiters || 4} ليتر ماء يومياً على الأقل.</span> 💧 <span className="font-bold text-white">:الماء</span></li>
-                <li className="flex items-center justify-end gap-2"><span>النوم من 7 إلى 8 ساعات يومياً لتسريع استشفاء العضلات.</span> 😴 <span className="font-bold text-white">:النوم</span></li>
-                <li className="flex items-center justify-end gap-2"><span>وزن اللحوم والأرز يكون بعد الطبخ.</span> ⚖️ <span className="font-bold text-white">:الوزن</span></li>
+              <ul className="space-y-2.5 text-xs text-gray-300 text-right">
+                <li className="flex items-start justify-end gap-2">
+                  <span className="text-right">ناول {plan.hydrationLiters || 4} ليتر ماء يومياً على الأقل.</span>
+                  <span className="font-bold text-white whitespace-nowrap shrink-0">💧 الماء:</span>
+                </li>
+                <li className="flex items-start justify-end gap-2">
+                  <span className="text-right">النوم من 7 إلى 8 ساعات يومياً لتسريع استشفاء العضلات.</span>
+                  <span className="font-bold text-white whitespace-nowrap shrink-0">😴 النوم:</span>
+                </li>
+                <li className="flex items-start justify-end gap-2">
+                  <span className="text-right">وزن اللحوم والأرز يكون بعد الطبخ.</span>
+                  <span className="font-bold text-white whitespace-nowrap shrink-0">⚖️ الوزن:</span>
+                </li>
               </ul>
             </div>
 
             <div className="bg-[#141414] border border-[#222222] p-4 rounded-2xl space-y-3">
-              <h3 className="text-xs font-bold text-white flex items-center justify-end gap-1.5">
-                <span>المكملات الغذائية المطلوبة (Supplements)</span>
-                <Sparkles className="w-4 h-4 text-[#9CFF00]" />
+              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center justify-end gap-1.5 flex-wrap">
+                <span className="font-mono text-[#9CFF00] text-[10px] sm:text-xs font-semibold">(Supplements)</span>
+                <span>المكملات الغذائية المطلوبة</span>
+                <Sparkles className="w-4 h-4 text-[#9CFF00] shrink-0" />
               </h3>
-              <ul className="space-y-2 text-xs text-gray-300 text-right">
+              <ul className="space-y-2.5 text-xs text-gray-300 text-right">
                 {plan.supplements && plan.supplements.length > 0 ? (
                   plan.supplements.map((sup, idx) => (
                     <li key={idx} className="flex items-center justify-end gap-2">
@@ -241,9 +252,9 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                   ))
                 ) : (
                   <>
-                    <li className="flex items-center justify-end gap-2"><span>ماء: 4 ليتر يومياً</span> <CheckCircle2 className="w-3.5 h-3.5 text-[#9CFF00]" /></li>
-                    <li className="flex items-center justify-end gap-2"><span>كرياتين مونوهيدرات: 5 جرام</span> <CheckCircle2 className="w-3.5 h-3.5 text-[#9CFF00]" /></li>
-                    <li className="flex items-center justify-end gap-2"><span>مولتي فيتامين: كبسولة صباحاً</span> <CheckCircle2 className="w-3.5 h-3.5 text-[#9CFF00]" /></li>
+                    <li className="flex items-center justify-end gap-2"><span className="font-medium">ماء: 4 ليتر يومياً</span> <CheckCircle2 className="w-3.5 h-3.5 text-[#9CFF00] shrink-0" /></li>
+                    <li className="flex items-center justify-end gap-2"><span className="font-medium">كرياتين مونوهيدرات: 5 جرام</span> <CheckCircle2 className="w-3.5 h-3.5 text-[#9CFF00] shrink-0" /></li>
+                    <li className="flex items-center justify-end gap-2"><span className="font-medium">مولتي فيتامين: كبسولة صباحاً</span> <CheckCircle2 className="w-3.5 h-3.5 text-[#9CFF00] shrink-0" /></li>
                   </>
                 )}
               </ul>
@@ -251,9 +262,12 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
           </div>
 
           {/* Bottom Coach Notes Card */}
-          <div className="bg-[#141414] border border-[#9CFF00]/30 p-4 rounded-2xl text-right">
-            <span className="text-xs font-bold text-[#9CFF00] block mb-1">💬 ملاحظات الكابتن الخاصة:</span>
-            <p className="text-xs text-gray-300 italic">
+          <div className="bg-[#141414] border border-[#9CFF00]/30 p-4 rounded-2xl text-right space-y-1">
+            <span className="text-xs font-bold text-[#9CFF00] flex items-center justify-end gap-1">
+              <span>ملاحظات الكابتن الخاصة</span>
+              <span>💬</span>
+            </span>
+            <p className="text-xs text-gray-300 italic leading-relaxed">
               {plan.coachNotes || 'نظام غذائي أسبوعي متكامل تم إعداده خصيصاً لك بواسطة الكابتن.'}
             </p>
           </div>

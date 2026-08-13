@@ -31,12 +31,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#9CFF00] to-transparent"></div>
 
       {/* Main Container Aligned across Full Viewport Width */}
-      <div className="w-full px-4 sm:px-8 lg:px-12 py-3 flex items-center justify-between gap-4">
+      <div className="w-full px-2.5 sm:px-8 lg:px-12 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Right Section (RTL Start): Horizontal Compact LIMBY FIT Brand Emblem */}
         <div 
           onClick={() => setCurrentView && setCurrentView('list')}
-          className="flex items-center gap-2 cursor-pointer group bg-[#161616] hover:bg-[#1C1C1C] border border-[#2A2A2A] hover:border-[#9CFF00]/60 px-2.5 sm:px-3.5 py-1.5 rounded-2xl transition-all shadow-md shrink-0"
+          className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group bg-[#161616] hover:bg-[#1C1C1C] border border-[#2A2A2A] hover:border-[#9CFF00]/60 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-2xl transition-all shadow-md shrink-0"
         >
           {/* Logo SVG Vector Icon */}
           <div className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center shrink-0">
