@@ -59,13 +59,19 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
 
   const firstDayMeals = daysList[0]?.meals || plan.meals || [];
   firstDayMeals.forEach(m => {
-    const item = m.items[0];
-    const p = item?.protein || m.totalProtein || 0;
-    const c = item?.carbs || m.totalCarbs || 0;
-    const f = item?.fats || m.totalFats || 0;
-    displayProtein += p;
-    displayCarbs += c;
-    displayFats += f;
+    let mP = m.totalProtein || 0;
+    let mC = m.totalCarbs || 0;
+    let mF = m.totalFats || 0;
+    if ((!mP && !mC && !mF) && m.items && m.items.length > 0) {
+      m.items.forEach(it => {
+        mP += it.protein || 0;
+        mC += it.carbs || 0;
+        mF += it.fats || 0;
+      });
+    }
+    displayProtein += mP;
+    displayCarbs += mC;
+    displayFats += mF;
   });
 
   displayCalories = Math.round((displayProtein * 4) + (displayCarbs * 4) + (displayFats * 9));
@@ -258,11 +264,17 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
         {daysList.map((day, idx) => {
           let dayCal = 0, dayP = 0, dayC = 0, dayF = 0;
           day.meals.forEach(m => {
-            const item = m.items[0];
-            const p = item?.protein || m.totalProtein || 0;
-            const c = item?.carbs || m.totalCarbs || 0;
-            const f = item?.fats || m.totalFats || 0;
-            dayP += p; dayC += c; dayF += f;
+            let mP = m.totalProtein || 0;
+            let mC = m.totalCarbs || 0;
+            let mF = m.totalFats || 0;
+            if ((!mP && !mC && !mF) && m.items && m.items.length > 0) {
+              m.items.forEach(it => {
+                mP += it.protein || 0;
+                mC += it.carbs || 0;
+                mF += it.fats || 0;
+              });
+            }
+            dayP += mP; dayC += mC; dayF += mF;
           });
           dayCal = Math.round((dayP * 4) + (dayC * 4) + (dayF * 9));
           if (dayCal === 0) dayCal = displayCalories;
@@ -313,11 +325,17 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
               {/* 5 Meal Cards */}
               <div className="space-y-3">
                 {day.meals.map((meal) => {
-                  const item = meal.items[0];
-                  const p = item?.protein || meal.totalProtein || 0;
-                  const c = item?.carbs || meal.totalCarbs || 0;
-                  const f = item?.fats || meal.totalFats || 0;
-                  const mealCal = Math.round((p * 4) + (c * 4) + (f * 9));
+                  let p = meal.totalProtein || 0;
+                  let c = meal.totalCarbs || 0;
+                  let f = meal.totalFats || 0;
+                  if ((!p && !c && !f) && meal.items && meal.items.length > 0) {
+                    meal.items.forEach(it => {
+                      p += it.protein || 0;
+                      c += it.carbs || 0;
+                      f += it.fats || 0;
+                    });
+                  }
+                  const mealCal = meal.totalCalories || Math.round((p * 4) + (c * 4) + (f * 9));
 
                   return (
                     <div key={meal.id} className="bg-[#141414] border border-[#222222] rounded-2xl p-3.5 space-y-2">
@@ -332,10 +350,17 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                         </div>
                       </div>
 
-                      <div className="bg-[#0A0A0A] border border-[#1F1F1F] p-2.5 rounded-xl text-right">
-                        <p className="text-xs font-bold text-white leading-relaxed">
-                          {item?.foodNameAr || 'وجبة متكاملة مخصصة وفقاً للاحتياج.'}
-                        </p>
+                      <div className="bg-[#0A0A0A] border border-[#1F1F1F] p-2.5 rounded-xl text-right space-y-1.5">
+                        {meal.items && meal.items.length > 0 ? (
+                          meal.items.map((item, itemIdx) => (
+                            <div key={itemIdx} className="flex items-center justify-between text-xs py-0.5 border-b border-[#181818] last:border-none">
+                              <span className="font-bold text-[#9CFF00] font-mono">{item.grams}g</span>
+                              <span className="font-bold text-white">{item.foodNameAr}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-500 italic">لا توجد أصناف في هذه الوجبة</p>
+                        )}
                       </div>
                     </div>
                   );

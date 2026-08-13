@@ -119,11 +119,11 @@ export function App() {
   // Automatic Zero-Config Global Cloud Data Sync (Syncs Mobile & Desktop out-of-the-box)
   useEffect(() => {
     const cleanupCloud = initCloudAutoSync(({ trainees: cloudTrainees, dietPlans: cloudPlans, coachProfile: cloudProfile }) => {
-      if (cloudTrainees && cloudTrainees.length > 0) {
+      if (cloudTrainees && Array.isArray(cloudTrainees)) {
         setTrainees(cloudTrainees);
         localStorage.setItem('limby_trainees', JSON.stringify(cloudTrainees));
       }
-      if (cloudPlans && cloudPlans.length > 0) {
+      if (cloudPlans && Array.isArray(cloudPlans)) {
         setDietPlans(cloudPlans);
         localStorage.setItem('limby_plans', JSON.stringify(cloudPlans));
       }
@@ -135,13 +135,13 @@ export function App() {
 
     // Firebase Listeners (if Firebase configured)
     const unsubTrainees = subscribeToCloudTrainees((cloudTrainees) => {
-      if (cloudTrainees && cloudTrainees.length > 0) {
+      if (cloudTrainees && Array.isArray(cloudTrainees)) {
         setTrainees(cloudTrainees);
       }
     });
 
     const unsubPlans = subscribeToCloudDietPlans((cloudPlans) => {
-      if (cloudPlans && cloudPlans.length > 0) {
+      if (cloudPlans && Array.isArray(cloudPlans)) {
         setDietPlans(cloudPlans);
       }
     });
@@ -352,20 +352,17 @@ export function App() {
   };
 
   const savePlanToState = (plan: DietPlan) => {
-    let newPlans: DietPlan[] = [];
-    setDietPlans(prev => {
-      const idx = prev.findIndex(p => p.traineeId === selectedTraineeId);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = plan;
-        newPlans = copy;
-        return copy;
-      }
-      newPlans = [plan, ...prev];
-      return newPlans;
-    });
+    const idx = dietPlans.findIndex(p => p.traineeId === plan.traineeId || p.traineeId === selectedTraineeId);
+    let updatedPlans: DietPlan[];
+    if (idx >= 0) {
+      updatedPlans = [...dietPlans];
+      updatedPlans[idx] = plan;
+    } else {
+      updatedPlans = [plan, ...dietPlans];
+    }
+    setDietPlans(updatedPlans);
     syncPlanToCloud(plan);
-    pushCloudData(trainees, newPlans, coachProfile);
+    pushCloudData(trainees, updatedPlans, coachProfile);
   };
 
   // Add Trainee Handler
@@ -399,8 +396,8 @@ export function App() {
     deletePlanFromCloud(targetId);
     pushCloudData(updatedTrainees, updatedPlans, coachProfile);
 
-    if (selectedTraineeId === targetId && updatedTrainees.length > 0) {
-      setSelectedTraineeId(updatedTrainees[0].id);
+    if (selectedTraineeId === targetId) {
+      setSelectedTraineeId(updatedTrainees.length > 0 ? updatedTrainees[0].id : '');
     }
 
     setTraineeToDelete(null);

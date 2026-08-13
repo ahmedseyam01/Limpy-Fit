@@ -22,7 +22,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   const [workoutDays, setWorkoutDays] = useState<number | string>(5);
   const [notes, setNotes] = useState('');
 
-  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
+  const [isManualEmail, setIsManualEmail] = useState(false);
+  const [isManualPassword, setIsManualPassword] = useState(false);
 
   // Lock background body scroll when modal is open to prevent page scrolling behind modal
   useEffect(() => {
@@ -32,17 +35,21 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
     } else {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
+      setName('');
+      setEmail('');
+      setPassword('');
+      setIsManualEmail(false);
+      setIsManualPassword(false);
     }
     return () => {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
   }, [isOpen]);
-  const [password, setPassword] = useState('');
-  const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
 
   // Helper function to generate clean Email with name + 2 digits
   const generateUniqueEmail = (rawName: string): string => {
+    if (!rawName.trim()) return '';
     const twoDigits = Math.floor(10 + Math.random() * 90); // Exactly 2 digits (10-99)
     const cleanLatin = rawName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
     
@@ -61,15 +68,23 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   // Auto-generate credentials based on name
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!email && val.trim().length > 2) {
-      setEmail(generateUniqueEmail(val));
-    }
-    if (!password) {
-      setPassword(generateUniquePassword());
+    const trimmed = val.trim();
+    if (!trimmed) {
+      if (!isManualEmail) setEmail('');
+      if (!isManualPassword) setPassword('');
+    } else {
+      if (!isManualEmail) {
+        setEmail(generateUniqueEmail(val));
+      }
+      if (!isManualPassword && !password) {
+        setPassword(generateUniquePassword());
+      }
     }
   };
 
   const handleRegenerateCredentials = () => {
+    setIsManualEmail(false);
+    setIsManualPassword(false);
     setEmail(generateUniqueEmail(name));
     setPassword(generateUniquePassword());
   };
@@ -214,7 +229,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setIsManualEmail(true);
+                    }}
                     placeholder="user@limbyfit.com"
                     className="w-full bg-[#141414] border border-[#262626] focus:border-[#9CFF00] text-[#9CFF00] rounded-xl py-2 pr-3 pl-10 text-xs outline-none font-mono"
                   />
@@ -252,7 +270,10 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
                     type="text"
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setIsManualPassword(true);
+                    }}
                     placeholder="fit1234"
                     className="w-full bg-[#141414] border border-[#262626] focus:border-[#9CFF00] text-white rounded-xl py-2 pr-3 pl-10 text-xs outline-none font-mono font-bold"
                   />

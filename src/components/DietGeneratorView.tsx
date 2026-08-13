@@ -192,11 +192,11 @@ export const DietGeneratorView: React.FC<DietGeneratorViewProps> = ({
     });
   };
 
-  const handleRemoveItem = (mealId: string, foodId: string) => {
+  const handleRemoveItem = (mealId: string, itemIndex: number) => {
     if (!activePlan) return;
 
     updateActiveDayMeals(mealId, (meal) => {
-      const updatedItems = meal.items.filter(it => it.foodId !== foodId);
+      const updatedItems = meal.items.filter((_, idx) => idx !== itemIndex);
       return recalculateMeal(meal, updatedItems);
     });
   };
@@ -445,9 +445,9 @@ export const DietGeneratorView: React.FC<DietGeneratorViewProps> = ({
 
             {/* Food Items List */}
             <div className="mt-4 space-y-3">
-              {meal.items.map((item) => (
+              {meal.items.map((item, itemIdx) => (
                 <div
-                  key={item.foodId}
+                  key={`${item.foodId}-${itemIdx}`}
                   className="bg-[#0A0A0A] border border-[#222222] rounded-2xl p-3 flex flex-col gap-2.5"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -460,7 +460,7 @@ export const DietGeneratorView: React.FC<DietGeneratorViewProps> = ({
                     </div>
 
                     <button
-                      onClick={() => handleRemoveItem(meal.id, item.foodId)}
+                      onClick={() => handleRemoveItem(meal.id, itemIdx)}
                       className="p-1 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
                       title="حذف الصنف"
                     >
