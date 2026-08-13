@@ -56,12 +56,20 @@ export function App() {
 
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
     const saved = localStorage.getItem('limby_trainees');
-    return saved ? JSON.parse(saved) : INITIAL_TRAINEES;
+    if (saved) {
+      const parsed: Trainee[] = JSON.parse(saved);
+      return parsed.filter(t => t.id !== 'tr-1' && t.id !== 'tr-2' && t.id !== 'tr-3');
+    }
+    return INITIAL_TRAINEES;
   });
 
   const [dietPlans, setDietPlans] = useState<DietPlan[]>(() => {
     const saved = localStorage.getItem('limby_plans');
-    return saved ? JSON.parse(saved) : [SAMPLE_DIET_PLAN];
+    if (saved) {
+      const parsed: DietPlan[] = JSON.parse(saved);
+      return parsed.filter(p => p.traineeId !== 'tr-1' && p.traineeId !== 'tr-2' && p.traineeId !== 'tr-3');
+    }
+    return [];
   });
 
   // Current View for Admin: 'list' | 'plan' | 'pdf' | 'settings'

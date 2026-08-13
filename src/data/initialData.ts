@@ -60,74 +60,7 @@ export const INITIAL_FOOD_DATABASE: FoodItem[] = [
   { id: 'f29', nameAr: 'حليب خالي الدسم', nameEn: 'Skimmed Milk', category: 'dairy', servingSizeGrams: 100, calories: 35, protein: 3.4, carbs: 5, fats: 0.1 }
 ];
 
-export const INITIAL_TRAINEES: Trainee[] = [
-  {
-    id: 'tr-1',
-    name: 'أحمد حسن',
-    phone: '+20 101 234 5678',
-    email: 'ahmed@limbyfit.com',
-    password: 'fit1234',
-    age: 26,
-    gender: 'male',
-    height: 178,
-    weight: 84,
-    targetWeight: 75,
-    goal: 'fat_loss',
-    activityLevel: 'heavy',
-    workoutDays: 5,
-    bodyFatPercentage: 18,
-    notes: 'يرغب في التنشيف مع الحفاظ على الكتلة العضلية.',
-    createdAt: '2026-08-01',
-    progressLogs: [
-      { id: 'p1', date: '2026-08-01', weight: 87, waistCm: 90, chestCm: 104 },
-      { id: 'p2', date: '2026-08-08', weight: 85.5, waistCm: 88, chestCm: 104 },
-      { id: 'p3', date: '2026-08-11', weight: 84, waistCm: 86.5, chestCm: 104.5 }
-    ]
-  },
-  {
-    id: 'tr-2',
-    name: 'محمد علي',
-    phone: '+20 102 987 6543',
-    email: 'mohamed@limbyfit.com',
-    password: 'fit5678',
-    age: 24,
-    gender: 'male',
-    height: 182,
-    weight: 76,
-    targetWeight: 82,
-    goal: 'muscle_gain',
-    activityLevel: 'heavy',
-    workoutDays: 6,
-    bodyFatPercentage: 12,
-    notes: 'هدف تضخيم نظيف دون زيادات دهون عالية.',
-    createdAt: '2026-08-05',
-    progressLogs: [
-      { id: 'p10', date: '2026-08-05', weight: 75 },
-      { id: 'p11', date: '2026-08-11', weight: 76 }
-    ]
-  },
-  {
-    id: 'tr-3',
-    name: 'يارا مصطفى',
-    phone: '+20 109 555 4433',
-    email: 'yara@limbyfit.com',
-    password: 'fit9012',
-    age: 23,
-    gender: 'female',
-    height: 165,
-    weight: 62,
-    targetWeight: 58,
-    goal: 'recomp',
-    activityLevel: 'moderate',
-    workoutDays: 4,
-    bodyFatPercentage: 24,
-    notes: 'تحسين هيئة الجسم ونحت الخصر.',
-    createdAt: '2026-08-10',
-    progressLogs: [
-      { id: 'p20', date: '2026-08-10', weight: 62 }
-    ]
-  }
-];
+export const INITIAL_TRAINEES: Trainee[] = [];
 
 export const SAMPLE_DIET_PLAN: DietPlan = {
   id: 'plan-1',
