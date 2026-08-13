@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trainee, Goal, ActivityLevel, Gender } from '../types/nutrition';
 import { computeTraineeNutritionStats } from '../utils/calculator';
 import { X, UserPlus, Flame, Dumbbell, Sparkles, Activity, Copy, Check } from 'lucide-react';
@@ -23,6 +23,21 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   const [notes, setNotes] = useState('');
 
   const [email, setEmail] = useState('');
+
+  // Lock background body scroll when modal is open to prevent page scrolling behind modal
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
   const [password, setPassword] = useState('');
   const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
 
@@ -109,11 +124,11 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto no-scrollbar bg-black/85 backdrop-blur-md p-3 sm:p-6 flex items-start sm:items-center justify-center min-h-screen py-6 sm:py-10">
-      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl p-4 sm:p-7 shadow-2xl relative my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2.5 sm:p-5 overscroll-none">
+      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden my-auto">
         
         {/* Top Header Bar */}
-        <div className="flex items-center justify-between gap-2 pb-4 border-b border-[#262626]">
+        <div className="shrink-0 bg-[#161616] px-4 sm:px-6 py-3.5 border-b border-[#262626] flex items-center justify-between gap-2 rounded-t-3xl z-20">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-[#9CFF00] text-black flex items-center justify-center font-black shrink-0 shadow-[0_0_10px_rgba(156,255,0,0.3)]">
               <UserPlus className="w-4 h-4 stroke-[2.5]" />
@@ -135,8 +150,8 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
-        {/* Modal Body Content */}
-        <div className="pt-4 space-y-4">
+        {/* Modal Scrollable Body Content (Direct scroll inside modal) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 touch-pan-y overscroll-contain no-scrollbar">
 
         {/* Coach Custom Design Info Banner */}
         <div className="p-3 bg-[#9CFF00]/10 border border-[#9CFF00]/30 rounded-2xl flex items-center gap-2.5 text-xs text-[#9CFF00]">
