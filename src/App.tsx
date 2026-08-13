@@ -761,8 +761,9 @@ export function App() {
                           <label className="text-[10px] text-gray-400 block mb-0.5">الجولات (Sets):</label>
                           <input
                             type="number"
-                            value={ex.sets}
-                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'sets', parseInt(e.target.value) || 1)}
+                            value={ex.sets || ''}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'sets', e.target.value === '' ? '' : parseInt(e.target.value))}
                             className="w-full bg-[#141414] border border-[#222] focus:border-[#9CFF00] text-white text-xs text-center py-1 rounded-lg outline-none"
                           />
                         </div>
@@ -780,8 +781,9 @@ export function App() {
                           <label className="text-[10px] text-gray-400 block mb-0.5">الراحة (ثانية):</label>
                           <input
                             type="number"
-                            value={ex.restSeconds || 60}
-                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'restSeconds', parseInt(e.target.value) || 60)}
+                            value={ex.restSeconds || ''}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleUpdateExercise(activeDayIndex, exIdx, 'restSeconds', e.target.value === '' ? '' : parseInt(e.target.value))}
                             className="w-full bg-[#141414] border border-[#222] focus:border-[#9CFF00] text-white text-xs text-center py-1 rounded-lg outline-none"
                           />
                         </div>

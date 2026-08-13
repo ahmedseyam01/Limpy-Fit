@@ -549,8 +549,9 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                   type="number"
                   step="0.1"
                   required
-                  value={newWeight}
-                  onChange={(e) => setNewWeight(Number(e.target.value))}
+                  value={newWeight === 0 || !newWeight ? '' : newWeight}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => setNewWeight(e.target.value === '' ? ('' as any) : Number(e.target.value))}
                   className="w-full bg-[#0A0A0A] border border-[#262626] focus:border-[#9CFF00] text-[#9CFF00] rounded-xl py-3 text-center text-lg font-black outline-none font-mono"
                 />
               </div>

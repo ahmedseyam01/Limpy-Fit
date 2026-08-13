@@ -12,14 +12,14 @@ interface AddTraineeModalProps {
 export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClose, onAddTrainee }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [age, setAge] = useState(25);
+  const [age, setAge] = useState<number | string>(25);
   const [gender, setGender] = useState<Gender>('male');
-  const [height, setHeight] = useState(175);
-  const [weight, setWeight] = useState(80);
-  const [targetWeight, setTargetWeight] = useState(72);
+  const [height, setHeight] = useState<number | string>(175);
+  const [weight, setWeight] = useState<number | string>(80);
+  const [targetWeight, setTargetWeight] = useState<number | string>(72);
   const [goal, setGoal] = useState<Goal>('fat_loss');
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>('heavy');
-  const [workoutDays, setWorkoutDays] = useState(5);
+  const [workoutDays, setWorkoutDays] = useState<number | string>(5);
   const [notes, setNotes] = useState('');
 
   const [email, setEmail] = useState('');
@@ -279,8 +279,9 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
                 required
                 min="12"
                 max="90"
-                value={age}
-                onChange={(e) => setAge(Number(e.target.value))}
+                value={age === 0 || age === '' ? '' : age}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3 text-xs outline-none text-center font-bold"
               />
             </div>
@@ -305,8 +306,9 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
                 required
                 min="120"
                 max="230"
-                value={height}
-                onChange={(e) => setHeight(Number(e.target.value))}
+                value={height === 0 || height === '' ? '' : height}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setHeight(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3 text-xs outline-none text-center font-bold"
               />
             </div>
@@ -318,8 +320,9 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
                 required
                 min="30"
                 max="250"
-                value={weight}
-                onChange={(e) => setWeight(Number(e.target.value))}
+                value={weight === 0 || weight === '' ? '' : weight}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3 text-xs outline-none text-center font-bold text-[#9CFF00]"
               />
             </div>
