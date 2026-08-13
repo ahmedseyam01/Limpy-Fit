@@ -109,11 +109,11 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3.5 sm:p-4 overflow-y-auto no-scrollbar min-h-screen">
-      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto no-scrollbar shadow-2xl relative my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 overflow-hidden min-h-screen">
+      <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl relative my-auto overflow-hidden">
         
         {/* Sticky Top Header Bar (100% Mobile Ready) */}
-        <div className="sticky top-0 z-30 bg-[#161616]/95 backdrop-blur-md px-3.5 sm:px-6 py-3 border-b border-[#262626] flex items-center justify-between gap-2 rounded-t-3xl">
+        <div className="shrink-0 bg-[#161616] px-3.5 sm:px-6 py-3 border-b border-[#262626] flex items-center justify-between gap-2 rounded-t-3xl z-20">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-[#9CFF00] text-black flex items-center justify-center font-black shrink-0">
               <UserPlus className="w-4 h-4 stroke-[2.5]" />
@@ -136,7 +136,7 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Modal Scrollable Body Content */}
-        <div className="p-3.5 sm:p-8 pt-3">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 no-scrollbar">
 
         {/* Coach Custom Design Info Banner */}
         <div className="p-3 bg-[#9CFF00]/10 border border-[#9CFF00]/30 rounded-2xl flex items-center gap-2.5 text-xs text-[#9CFF00]">
@@ -411,18 +411,18 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
             />
           </div>
 
-          {/* Submit Action */}
-          <div className="pt-3 border-t border-[#262626] flex items-center justify-end gap-3">
+          {/* Sticky Submit Action Footer (Always visible on mobile) */}
+          <div className="sticky bottom-0 z-30 bg-[#161616]/95 backdrop-blur-md -mx-3.5 sm:-mx-6 -mb-3.5 sm:-mb-6 p-3.5 sm:p-4 border-t border-[#262626] flex items-center justify-end gap-3 rounded-b-3xl mt-4 shadow-lg">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl bg-[#262626] hover:bg-[#333333] text-gray-300 text-xs font-bold transition-colors cursor-pointer"
+              className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#262626] hover:bg-[#333333] text-gray-300 text-xs font-bold transition-colors cursor-pointer"
             >
               إلغاء
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#9CFF00] hover:bg-[#8BE600] text-black text-xs font-black shadow-[0_0_15px_rgba(156,255,0,0.3)] transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-5 sm:px-6 py-2.5 rounded-xl bg-[#9CFF00] hover:bg-[#8BE600] text-black text-xs font-black shadow-[0_0_15px_rgba(156,255,0,0.3)] transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
             >
               <UserPlus className="w-4 h-4 stroke-[2.5]" />
               <span>حفظ المتدرب وإنشاء النظام</span>
