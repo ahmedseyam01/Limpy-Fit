@@ -22,6 +22,7 @@ import {
   subscribeToCloudCoachProfile,
   syncCoachProfileToCloud
 } from './lib/firebase';
+import { initCloudAutoSync, pushCloudData } from './lib/cloudSync';
 import {
   UserPlus,
   Trash2,
@@ -114,8 +115,24 @@ export function App() {
     localStorage.setItem('limby_plans', JSON.stringify(dietPlans));
   }, [dietPlans]);
 
-  // Real-time Firebase Cloud Data Listeners
+  // Automatic Zero-Config Global Cloud Data Sync (Syncs Mobile & Desktop out-of-the-box)
   useEffect(() => {
+    const cleanupCloud = initCloudAutoSync(({ trainees: cloudTrainees, dietPlans: cloudPlans, coachProfile: cloudProfile }) => {
+      if (cloudTrainees && cloudTrainees.length > 0) {
+        setTrainees(cloudTrainees);
+        localStorage.setItem('limby_trainees', JSON.stringify(cloudTrainees));
+      }
+      if (cloudPlans && cloudPlans.length > 0) {
+        setDietPlans(cloudPlans);
+        localStorage.setItem('limby_plans', JSON.stringify(cloudPlans));
+      }
+      if (cloudProfile) {
+        setCoachProfile(cloudProfile);
+        localStorage.setItem('limby_coach_profile', JSON.stringify(cloudProfile));
+      }
+    });
+
+    // Firebase Listeners (if Firebase configured)
     const unsubTrainees = subscribeToCloudTrainees((cloudTrainees) => {
       if (cloudTrainees && cloudTrainees.length > 0) {
         setTrainees(cloudTrainees);
@@ -135,6 +152,7 @@ export function App() {
     });
 
     return () => {
+      cleanupCloud();
       unsubTrainees();
       unsubPlans();
       unsubProfile();
@@ -333,16 +351,20 @@ export function App() {
   };
 
   const savePlanToState = (plan: DietPlan) => {
+    let newPlans: DietPlan[] = [];
     setDietPlans(prev => {
       const idx = prev.findIndex(p => p.traineeId === selectedTraineeId);
       if (idx >= 0) {
         const copy = [...prev];
         copy[idx] = plan;
+        newPlans = copy;
         return copy;
       }
-      return [plan, ...prev];
+      newPlans = [plan, ...prev];
+      return newPlans;
     });
     syncPlanToCloud(plan);
+    pushCloudData(trainees, newPlans, coachProfile);
   };
 
   // Add Trainee Handler
@@ -351,6 +373,7 @@ export function App() {
     setTrainees(updatedTrainees);
     localStorage.setItem('limby_trainees', JSON.stringify(updatedTrainees));
     syncTraineeToCloud(newTrainee);
+    pushCloudData(updatedTrainees, dietPlans, coachProfile);
 
     setSelectedTraineeId(newTrainee.id);
     setShowAddModal(false);
@@ -373,6 +396,7 @@ export function App() {
 
     deleteTraineeFromCloud(targetId);
     deletePlanFromCloud(targetId);
+    pushCloudData(updatedTrainees, updatedPlans, coachProfile);
 
     if (selectedTraineeId === targetId && updatedTrainees.length > 0) {
       setSelectedTraineeId(updatedTrainees[0].id);
@@ -430,8 +454,13 @@ export function App() {
         coachProfile={coachProfile}
         onLogout={handleLogout}
         onUpdateTraineeProgress={(updatedTrainee) => {
-          setTrainees(prev => prev.map(t => t.id === updatedTrainee.id ? updatedTrainee : t));
+          let updatedList: Trainee[] = [];
+          setTrainees(prev => {
+            updatedList = prev.map(t => t.id === updatedTrainee.id ? updatedTrainee : t);
+            return updatedList;
+          });
           syncTraineeToCloud(updatedTrainee);
+          pushCloudData(updatedList, dietPlans, coachProfile);
         }}
         onViewPdf={() => setCurrentView('pdf')}
       />
@@ -874,6 +903,7 @@ export function App() {
               setCoachProfile(updatedProfile);
               localStorage.setItem('limby_coach_profile', JSON.stringify(updatedProfile));
               syncCoachProfileToCloud(updatedProfile);
+              pushCloudData(trainees, dietPlans, updatedProfile);
             }}
           />
         )}
