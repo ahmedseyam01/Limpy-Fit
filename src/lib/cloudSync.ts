@@ -6,6 +6,7 @@ const FALLBACK_SYNC_ENDPOINT = 'https://limpy-fit.vercel.app/api/sync';
 export interface CloudPayload {
   trainees: Trainee[];
   plans: DietPlan[];
+  deletedTraineeIds?: string[];
   coachProfile?: CoachProfile;
   lastUpdated: number;
 }
@@ -36,7 +37,7 @@ export async function fetchCloudData(): Promise<CloudPayload | null> {
       if (!res.ok) continue;
       const json = await res.json();
       const payload = json.data || json;
-      if (payload && (payload.trainees || payload.lastUpdated)) {
+      if (payload && (payload.trainees || payload.lastUpdated !== undefined)) {
         return payload as CloudPayload;
       }
     } catch (err) {
@@ -47,12 +48,13 @@ export async function fetchCloudData(): Promise<CloudPayload | null> {
 }
 
 /**
- * Pushes updated trainees, plans, or profile to the global cloud store
+ * Pushes updated trainees, plans, deleted IDs, or profile to global cloud store
  */
 export async function pushCloudData(
   traineesList: Trainee[],
   plansList: DietPlan[],
-  profile?: CoachProfile
+  profile?: CoachProfile,
+  deletedTraineeIds: string[] = []
 ): Promise<boolean> {
   if (isPushing) return false;
   isPushing = true;
@@ -63,6 +65,7 @@ export async function pushCloudData(
     const payload: CloudPayload = {
       trainees: traineesList,
       plans: plansList,
+      deletedTraineeIds,
       coachProfile: profile,
       lastUpdated: timestamp
     };
@@ -100,16 +103,24 @@ export async function pushCloudData(
  * Initializes automatic real-time cloud polling and window focus sync listeners
  */
 export function initCloudAutoSync(
-  onDataReceived: (data: { trainees?: Trainee[]; dietPlans?: DietPlan[]; coachProfile?: CoachProfile }) => void
+  onDataReceived: (data: {
+    trainees?: Trainee[];
+    dietPlans?: DietPlan[];
+    deletedTraineeIds?: string[];
+    coachProfile?: CoachProfile;
+    lastUpdated?: number;
+  }) => void
 ): () => void {
   const checkCloudUpdates = async () => {
     const cloud = await fetchCloudData();
-    if (cloud && cloud.lastUpdated && cloud.lastUpdated > lastSyncTimestamp) {
+    if (cloud && cloud.lastUpdated !== undefined && cloud.lastUpdated > lastSyncTimestamp) {
       lastSyncTimestamp = cloud.lastUpdated;
       onDataReceived({
         trainees: cloud.trainees,
         dietPlans: cloud.plans,
-        coachProfile: cloud.coachProfile
+        deletedTraineeIds: cloud.deletedTraineeIds,
+        coachProfile: cloud.coachProfile,
+        lastUpdated: cloud.lastUpdated
       });
     }
   };

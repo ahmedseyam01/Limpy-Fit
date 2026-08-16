@@ -140,37 +140,50 @@ export function App() {
 
   // Automatic Zero-Config Global Cloud Data Sync (Syncs Mobile & Desktop out-of-the-box)
   useEffect(() => {
-    const cleanupCloud = initCloudAutoSync(({ trainees: cloudTrainees, dietPlans: cloudPlans, coachProfile: cloudProfile }) => {
-      // PROTECT TRAINEES FROM CLOUD WIPES
-      const localTraineesRaw = localStorage.getItem('limby_trainees') || localStorage.getItem('limby_trainees_backup');
-      const localTrainees: Trainee[] = localTraineesRaw ? JSON.parse(localTraineesRaw) : [];
+    const cleanupCloud = initCloudAutoSync(({ trainees: cloudTrainees, dietPlans: cloudPlans, deletedTraineeIds: cloudDeletedIds, coachProfile: cloudProfile, lastUpdated: cloudTimestamp }) => {
+      // 1. Process cloud deletions across devices
+      if (cloudDeletedIds && Array.isArray(cloudDeletedIds) && cloudDeletedIds.length > 0) {
+        const deletedSet = new Set(cloudDeletedIds);
+        setTrainees(prev => {
+          const filtered = prev.filter(t => !deletedSet.has(t.id));
+          localStorage.setItem('limby_trainees', JSON.stringify(filtered));
+          localStorage.setItem('limby_trainees_backup', JSON.stringify(filtered));
+          return filtered;
+        });
+        setDietPlans(prev => {
+          const filtered = prev.filter(p => !deletedSet.has(p.traineeId));
+          localStorage.setItem('limby_plans', JSON.stringify(filtered));
+          localStorage.setItem('limby_plans_backup', JSON.stringify(filtered));
+          return filtered;
+        });
+      }
 
+      // 2. Process cloud trainees list
       if (cloudTrainees && Array.isArray(cloudTrainees)) {
-        if (cloudTrainees.length === 0 && localTrainees.length > 0) {
-          // Cloud sent empty data, but local storage has trainees! DO NOT WIPE LOCAL DATA!
-          // Push local trainees back to cloud to restore serverless memory
+        const localTraineesRaw = localStorage.getItem('limby_trainees') || localStorage.getItem('limby_trainees_backup');
+        const localTrainees: Trainee[] = localTraineesRaw ? JSON.parse(localTraineesRaw) : [];
+
+        if (cloudTimestamp === 0 && localTrainees.length > 0) {
+          // Cloud has never been populated (cold initial start), push local trainees up
           pushCloudData(localTrainees, dietPlans, coachProfile);
-        } else if (cloudTrainees.length > 0) {
+        } else if (cloudTimestamp && cloudTimestamp > 0) {
+          // Legitimate cloud sync update from Mobile or Laptop
           setTrainees(cloudTrainees);
           localStorage.setItem('limby_trainees', JSON.stringify(cloudTrainees));
           localStorage.setItem('limby_trainees_backup', JSON.stringify(cloudTrainees));
         }
       }
 
-      // PROTECT DIET PLANS FROM CLOUD WIPES
-      const localPlansRaw = localStorage.getItem('limby_plans') || localStorage.getItem('limby_plans_backup');
-      const localPlans: DietPlan[] = localPlansRaw ? JSON.parse(localPlansRaw) : [];
-
+      // 3. Process cloud diet plans
       if (cloudPlans && Array.isArray(cloudPlans)) {
-        if (cloudPlans.length === 0 && localPlans.length > 0) {
-          pushCloudData(trainees, localPlans, coachProfile);
-        } else if (cloudPlans.length > 0) {
+        if (cloudTimestamp && cloudTimestamp > 0) {
           setDietPlans(cloudPlans);
           localStorage.setItem('limby_plans', JSON.stringify(cloudPlans));
           localStorage.setItem('limby_plans_backup', JSON.stringify(cloudPlans));
         }
       }
 
+      // 4. Process coach profile
       if (cloudProfile) {
         setCoachProfile(cloudProfile);
         localStorage.setItem('limby_coach_profile', JSON.stringify(cloudProfile));
@@ -179,13 +192,13 @@ export function App() {
 
     // Firebase Listeners (if Firebase configured)
     const unsubTrainees = subscribeToCloudTrainees((cloudTrainees) => {
-      if (cloudTrainees && Array.isArray(cloudTrainees) && cloudTrainees.length > 0) {
+      if (cloudTrainees && Array.isArray(cloudTrainees)) {
         setTrainees(cloudTrainees);
       }
     });
 
     const unsubPlans = subscribeToCloudDietPlans((cloudPlans) => {
-      if (cloudPlans && Array.isArray(cloudPlans) && cloudPlans.length > 0) {
+      if (cloudPlans && Array.isArray(cloudPlans)) {
         setDietPlans(cloudPlans);
       }
     });
@@ -439,9 +452,15 @@ export function App() {
     localStorage.setItem('limby_plans', JSON.stringify(updatedPlans));
     localStorage.setItem('limby_plans_backup', JSON.stringify(updatedPlans));
 
+    // Save deleted ID locally to propagate deletion across all devices
+    const savedDeletedRaw = localStorage.getItem('limby_deleted_ids');
+    const existingDeleted: string[] = savedDeletedRaw ? JSON.parse(savedDeletedRaw) : [];
+    const updatedDeleted = Array.from(new Set([...existingDeleted, targetId]));
+    localStorage.setItem('limby_deleted_ids', JSON.stringify(updatedDeleted));
+
     deleteTraineeFromCloud(targetId);
     deletePlanFromCloud(targetId);
-    pushCloudData(updatedTrainees, updatedPlans, coachProfile);
+    pushCloudData(updatedTrainees, updatedPlans, coachProfile, updatedDeleted);
 
     if (selectedTraineeId === targetId) {
       setSelectedTraineeId(updatedTrainees.length > 0 ? updatedTrainees[0].id : '');
