@@ -69,18 +69,34 @@ export function App() {
 
   const [trainees, setTrainees] = useState<Trainee[]>(() => {
     const saved = localStorage.getItem('limby_trainees');
-    if (saved) {
-      const parsed: Trainee[] = JSON.parse(saved);
-      return parsed.filter(t => t.id !== 'tr-1' && t.id !== 'tr-2' && t.id !== 'tr-3');
+    const backup = localStorage.getItem('limby_trainees_backup');
+    const raw = saved || backup;
+    if (raw) {
+      try {
+        const parsed: Trainee[] = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (err) {
+        console.error('Failed to load saved trainees', err);
+      }
     }
     return INITIAL_TRAINEES;
   });
 
   const [dietPlans, setDietPlans] = useState<DietPlan[]>(() => {
     const saved = localStorage.getItem('limby_plans');
-    if (saved) {
-      const parsed: DietPlan[] = JSON.parse(saved);
-      return parsed.filter(p => p.traineeId !== 'tr-1' && p.traineeId !== 'tr-2' && p.traineeId !== 'tr-3');
+    const backup = localStorage.getItem('limby_plans_backup');
+    const raw = saved || backup;
+    if (raw) {
+      try {
+        const parsed: DietPlan[] = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (err) {
+        console.error('Failed to load saved plans', err);
+      }
     }
     return [];
   });
@@ -107,26 +123,54 @@ export function App() {
     { ar: 'الجمعة', en: 'Friday' }
   ];
 
-  // Save effects
+  // Save effects with fail-safe backup
   useEffect(() => {
-    localStorage.setItem('limby_trainees', JSON.stringify(trainees));
+    if (trainees.length > 0) {
+      localStorage.setItem('limby_trainees', JSON.stringify(trainees));
+      localStorage.setItem('limby_trainees_backup', JSON.stringify(trainees));
+    }
   }, [trainees]);
 
   useEffect(() => {
-    localStorage.setItem('limby_plans', JSON.stringify(dietPlans));
+    if (dietPlans.length > 0) {
+      localStorage.setItem('limby_plans', JSON.stringify(dietPlans));
+      localStorage.setItem('limby_plans_backup', JSON.stringify(dietPlans));
+    }
   }, [dietPlans]);
 
   // Automatic Zero-Config Global Cloud Data Sync (Syncs Mobile & Desktop out-of-the-box)
   useEffect(() => {
     const cleanupCloud = initCloudAutoSync(({ trainees: cloudTrainees, dietPlans: cloudPlans, coachProfile: cloudProfile }) => {
+      // PROTECT TRAINEES FROM CLOUD WIPES
+      const localTraineesRaw = localStorage.getItem('limby_trainees') || localStorage.getItem('limby_trainees_backup');
+      const localTrainees: Trainee[] = localTraineesRaw ? JSON.parse(localTraineesRaw) : [];
+
       if (cloudTrainees && Array.isArray(cloudTrainees)) {
-        setTrainees(cloudTrainees);
-        localStorage.setItem('limby_trainees', JSON.stringify(cloudTrainees));
+        if (cloudTrainees.length === 0 && localTrainees.length > 0) {
+          // Cloud sent empty data, but local storage has trainees! DO NOT WIPE LOCAL DATA!
+          // Push local trainees back to cloud to restore serverless memory
+          pushCloudData(localTrainees, dietPlans, coachProfile);
+        } else if (cloudTrainees.length > 0) {
+          setTrainees(cloudTrainees);
+          localStorage.setItem('limby_trainees', JSON.stringify(cloudTrainees));
+          localStorage.setItem('limby_trainees_backup', JSON.stringify(cloudTrainees));
+        }
       }
+
+      // PROTECT DIET PLANS FROM CLOUD WIPES
+      const localPlansRaw = localStorage.getItem('limby_plans') || localStorage.getItem('limby_plans_backup');
+      const localPlans: DietPlan[] = localPlansRaw ? JSON.parse(localPlansRaw) : [];
+
       if (cloudPlans && Array.isArray(cloudPlans)) {
-        setDietPlans(cloudPlans);
-        localStorage.setItem('limby_plans', JSON.stringify(cloudPlans));
+        if (cloudPlans.length === 0 && localPlans.length > 0) {
+          pushCloudData(trainees, localPlans, coachProfile);
+        } else if (cloudPlans.length > 0) {
+          setDietPlans(cloudPlans);
+          localStorage.setItem('limby_plans', JSON.stringify(cloudPlans));
+          localStorage.setItem('limby_plans_backup', JSON.stringify(cloudPlans));
+        }
       }
+
       if (cloudProfile) {
         setCoachProfile(cloudProfile);
         localStorage.setItem('limby_coach_profile', JSON.stringify(cloudProfile));
@@ -135,13 +179,13 @@ export function App() {
 
     // Firebase Listeners (if Firebase configured)
     const unsubTrainees = subscribeToCloudTrainees((cloudTrainees) => {
-      if (cloudTrainees && Array.isArray(cloudTrainees)) {
+      if (cloudTrainees && Array.isArray(cloudTrainees) && cloudTrainees.length > 0) {
         setTrainees(cloudTrainees);
       }
     });
 
     const unsubPlans = subscribeToCloudDietPlans((cloudPlans) => {
-      if (cloudPlans && Array.isArray(cloudPlans)) {
+      if (cloudPlans && Array.isArray(cloudPlans) && cloudPlans.length > 0) {
         setDietPlans(cloudPlans);
       }
     });
@@ -370,6 +414,7 @@ export function App() {
     const updatedTrainees = [newTrainee, ...trainees];
     setTrainees(updatedTrainees);
     localStorage.setItem('limby_trainees', JSON.stringify(updatedTrainees));
+    localStorage.setItem('limby_trainees_backup', JSON.stringify(updatedTrainees));
     syncTraineeToCloud(newTrainee);
     pushCloudData(updatedTrainees, dietPlans, coachProfile);
 
@@ -390,7 +435,9 @@ export function App() {
     setDietPlans(updatedPlans);
 
     localStorage.setItem('limby_trainees', JSON.stringify(updatedTrainees));
+    localStorage.setItem('limby_trainees_backup', JSON.stringify(updatedTrainees));
     localStorage.setItem('limby_plans', JSON.stringify(updatedPlans));
+    localStorage.setItem('limby_plans_backup', JSON.stringify(updatedPlans));
 
     deleteTraineeFromCloud(targetId);
     deletePlanFromCloud(targetId);

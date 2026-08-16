@@ -4,7 +4,7 @@ let globalSyncStore: any = {
   trainees: [],
   plans: [],
   coachProfile: null,
-  lastUpdated: Date.now()
+  lastUpdated: 0
 };
 
 export default async function handler(req: IncomingMessage & { body?: any }, res: ServerResponse) {

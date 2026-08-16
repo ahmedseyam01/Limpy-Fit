@@ -2,7 +2,6 @@ import { Trainee, DietPlan, CoachProfile } from '../types/nutrition';
 
 const PRIMARY_SYNC_ENDPOINT = '/api/sync';
 const FALLBACK_SYNC_ENDPOINT = 'https://limpy-fit.vercel.app/api/sync';
-const RESTFUL_API_FALLBACK = 'https://api.restful-api.dev/objects/ff8081819ff5b110019ffca18b3114bd';
 
 export interface CloudPayload {
   trainees: Trainee[];
@@ -20,7 +19,6 @@ const getEndpoints = () => {
   if (currentHost && !currentHost.includes('limpy-fit.vercel.app')) {
     endpoints.push(FALLBACK_SYNC_ENDPOINT);
   }
-  endpoints.push(RESTFUL_API_FALLBACK);
   return endpoints;
 };
 
@@ -79,9 +77,8 @@ export async function pushCloudData(
 
     for (const endpoint of endpoints) {
       try {
-        const method = endpoint.includes('api.restful-api.dev') ? 'PUT' : 'POST';
         const res = await fetch(endpoint, {
-          method,
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body
         });
