@@ -5,7 +5,8 @@ import type { AdminView } from './constants';
 import type { Session } from './lib/api';
 import { useAuth } from './hooks/useAuth';
 import { useAppData } from './hooks/useAppData';
-import { findPlanForTrainee } from './utils/plan';
+import { createDefaultPlan, findPlanForTrainee } from './utils/plan';
+import { computeTraineeNutritionStats } from './utils/calculator';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { ConfirmDialog } from './components/ui/ConfirmDialog';
@@ -155,6 +156,9 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
       data.updateTrainee(trainee);
     } else {
       data.addTrainee(trainee);
+      // Start the plan with the targets calculated in the form (not generic defaults).
+      const { macros } = computeTraineeNutritionStats(trainee);
+      data.savePlan({ ...createDefaultPlan(trainee.id, trainee.name), targetMacros: macros, actualMacros: { ...macros } });
       openTrainee(trainee.id, 'plan');
     }
     setTraineeForm(null);
