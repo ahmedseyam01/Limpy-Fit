@@ -8,13 +8,16 @@ const DEFAULT_TARGET_WEIGHT = 72;
 const DEFAULT_WORKOUT_DAYS = 5;
 import { X, UserPlus, Sparkles, Copy, Check } from 'lucide-react';
 
-interface AddTraineeModalProps {
+interface TraineeFormModalProps {
   isOpen: boolean;
+  /** When set, the form edits this trainee instead of creating a new one. */
+  trainee?: Trainee | null;
   onClose: () => void;
-  onAddTrainee: (trainee: Trainee) => void;
+  onSubmit: (trainee: Trainee) => void;
 }
 
-export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClose, onAddTrainee }) => {
+export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trainee, onClose, onSubmit }) => {
+  const isEdit = !!trainee;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [age, setAge] = useState<number | string>(25);
@@ -31,20 +34,29 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   const [isManualEmail, setIsManualEmail] = useState(false);
   const [isManualPassword, setIsManualPassword] = useState(false);
 
-  // Lock background body scroll when modal is open to prevent page scrolling behind modal
+  // Fill the form each time it opens: the trainee's data when editing, defaults when adding.
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      setName('');
-      setEmail('');
-      setPassword('');
-      setIsManualEmail(false);
-      setIsManualPassword(false);
-    }
+    if (!isOpen) return;
+    setName(trainee?.name ?? '');
+    setPhone(trainee?.phone ?? '');
+    setAge(trainee?.age ?? 25);
+    setGender(trainee?.gender ?? 'male');
+    setHeight(trainee?.height ?? 175);
+    setWeight(trainee?.weight ?? 80);
+    setGoal(trainee?.goal ?? 'fat_loss');
+    setActivityLevel(trainee?.activityLevel ?? 'heavy');
+    setNotes(trainee?.notes ?? '');
+    setEmail(trainee?.email ?? '');
+    setPassword(trainee?.password ?? '');
+    setIsManualEmail(!!trainee);
+    setIsManualPassword(!!trainee);
+  }, [isOpen, trainee]);
+
+  // Lock background body scroll while the modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
     return () => {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
@@ -124,21 +136,27 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
     const finalEmail = email || `${name.trim().toLowerCase().replace(/\s+/g, '')}${Math.floor(100 + Math.random() * 900)}@limbyfit.com`;
     const finalPassword = password || ('fit' + Math.floor(1000 + Math.random() * 9000));
 
-    const newTrainee: Trainee = {
-      ...tempTrainee,
-      id: `tr-${Date.now()}`,
-      email: finalEmail,
-      password: finalPassword,
-      progressLogs: [
-        {
-          id: `p-${Date.now()}`,
-          date: todayIso(),
-          weight: Number(weight)
+    const record: Trainee = isEdit
+      ? {
+          ...trainee,
+          ...tempTrainee,
+          id: trainee.id,
+          createdAt: trainee.createdAt,
+          targetWeight: trainee.targetWeight,
+          workoutDays: trainee.workoutDays,
+          progressLogs: trainee.progressLogs,
+          email: finalEmail,
+          password: finalPassword
         }
-      ]
-    };
+      : {
+          ...tempTrainee,
+          id: `tr-${Date.now()}`,
+          email: finalEmail,
+          password: finalPassword,
+          progressLogs: [{ id: `p-${Date.now()}`, date: todayIso(), weight: Number(weight) }]
+        };
 
-    onAddTrainee(newTrainee);
+    onSubmit(record);
     onClose();
   };
 
@@ -153,7 +171,7 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
               <UserPlus className="w-4 h-4 stroke-[2.5]" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-xs sm:text-base font-black text-white leading-tight truncate">إضافة متدرب جديد</h2>
+              <h2 className="text-xs sm:text-base font-black text-white leading-tight truncate">{isEdit ? 'تعديل بيانات المتدرب' : 'إضافة متدرب جديد'}</h2>
               <p className="text-[10px] sm:text-[11px] text-gray-400 truncate">توليد النظام الغذائي وبيانات الدخول تلقائياً</p>
             </div>
           </div>
@@ -465,7 +483,7 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
               className="px-5 sm:px-6 py-3 rounded-xl bg-[#9CFF00] hover:bg-[#8BE600] text-black text-xs sm:text-sm font-black shadow-[0_0_20px_rgba(156,255,0,0.35)] transition-all cursor-pointer flex items-center gap-2 active:scale-95"
             >
               <UserPlus className="w-4 h-4 stroke-[2.5]" />
-              <span>حفظ المتدرب وإنشاء النظام 🦾</span>
+              <span>{isEdit ? 'حفظ التعديلات 💾' : 'حفظ المتدرب وإنشاء النظام 🦾'}</span>
             </button>
           </div>
         </form>

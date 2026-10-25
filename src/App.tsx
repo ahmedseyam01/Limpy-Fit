@@ -11,7 +11,7 @@ import { Footer } from './components/layout/Footer';
 import { ConfirmDeleteModal } from './components/ui/ConfirmDeleteModal';
 import { LoginModal } from './features/auth/LoginModal';
 import { TraineesListView } from './features/trainees/TraineesListView';
-import { AddTraineeModal } from './features/trainees/AddTraineeModal';
+import { TraineeFormModal } from './features/trainees/TraineeFormModal';
 import { PlanBuilderView } from './features/plan-builder/PlanBuilderView';
 import { TraineePortalView } from './features/portal/TraineePortalView';
 
@@ -131,7 +131,8 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
   const { trainees, dietPlans, coachProfile } = data;
   const [currentView, setCurrentView] = useState<AdminView>('list');
   const [selectedTraineeId, setSelectedTraineeId] = useState(() => trainees[0]?.id ?? '');
-  const [showAddModal, setShowAddModal] = useState(false);
+  /** null = closed, 'new' = add form, Trainee = edit form */
+  const [traineeForm, setTraineeForm] = useState<Trainee | 'new' | null>(null);
   const [traineeToDelete, setTraineeToDelete] = useState<Trainee | null>(null);
 
   const selectedTrainee = trainees.find(t => t.id === selectedTraineeId) ?? trainees[0];
@@ -145,13 +146,18 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
     setCurrentView(view);
   }, []);
 
-  const openAddModal = useCallback(() => setShowAddModal(true), []);
+  const openAddModal = useCallback(() => setTraineeForm('new'), []);
+  const openEditModal = useCallback((t: Trainee) => setTraineeForm(t), []);
   const closeDeleteModal = useCallback(() => setTraineeToDelete(null), []);
 
-  const handleAddTrainee = (trainee: Trainee) => {
-    data.addTrainee(trainee);
-    setShowAddModal(false);
-    openTrainee(trainee.id, 'plan');
+  const handleSubmitTrainee = (trainee: Trainee) => {
+    if (traineeForm !== 'new') {
+      data.updateTrainee(trainee);
+    } else {
+      data.addTrainee(trainee);
+      openTrainee(trainee.id, 'plan');
+    }
+    setTraineeForm(null);
   };
 
   const confirmDeleteTrainee = () => {
@@ -182,6 +188,7 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
               trainees={trainees}
               onOpenTrainee={openTrainee}
               onRequestDelete={setTraineeToDelete}
+              onRequestEdit={openEditModal}
               onAddTrainee={openAddModal}
             />
           )}
@@ -193,6 +200,7 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
               plan={activePlan}
               onSavePlan={data.savePlan}
               onExportPdf={() => setCurrentView('pdf')}
+              onEditTrainee={() => openEditModal(selectedTrainee)}
             />
           )}
 
@@ -215,7 +223,12 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
           />
         )}
 
-        <AddTraineeModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onAddTrainee={handleAddTrainee} />
+        <TraineeFormModal
+          isOpen={traineeForm !== null}
+          trainee={traineeForm === 'new' ? null : traineeForm}
+          onClose={() => setTraineeForm(null)}
+          onSubmit={handleSubmitTrainee}
+        />
       </div>
 
       <Footer className="mt-6" />

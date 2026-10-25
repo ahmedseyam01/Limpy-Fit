@@ -8,10 +8,11 @@ interface TraineesListViewProps {
   trainees: Trainee[];
   onOpenTrainee: (traineeId: string, view: AdminView) => void;
   onRequestDelete: (trainee: Trainee) => void;
+  onRequestEdit: (trainee: Trainee) => void;
   onAddTrainee: () => void;
 }
 
-export function TraineesListView({ trainees, onOpenTrainee, onRequestDelete, onAddTrainee }: TraineesListViewProps) {
+export function TraineesListView({ trainees, onOpenTrainee, onRequestDelete, onRequestEdit, onAddTrainee }: TraineesListViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearch = useDeferredValue(searchTerm);
 
@@ -66,7 +67,7 @@ export function TraineesListView({ trainees, onOpenTrainee, onRequestDelete, onA
       {filteredTrainees.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredTrainees.map(t => (
-            <TraineeCard key={t.id} trainee={t} onOpen={onOpenTrainee} onRequestDelete={onRequestDelete} />
+            <TraineeCard key={t.id} trainee={t} onOpen={onOpenTrainee} onRequestDelete={onRequestDelete} onRequestEdit={onRequestEdit} />
           ))}
         </div>
       ) : (

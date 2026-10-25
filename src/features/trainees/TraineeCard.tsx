@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Copy, Dumbbell, FileText, Key, MessageCircle, Trash2 } from 'lucide-react';
+import { Copy, Dumbbell, FileText, Key, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import type { Trainee } from '../../types/nutrition';
 import { GOAL_LABELS_AR, type AdminView } from '../../constants';
 import {
@@ -13,6 +13,7 @@ interface TraineeCardProps {
   trainee: Trainee;
   onOpen: (traineeId: string, view: AdminView) => void;
   onRequestDelete: (trainee: Trainee) => void;
+  onRequestEdit: (trainee: Trainee) => void;
 }
 
 async function copyWithAlert(text: string, successMessage: string) {
@@ -26,7 +27,7 @@ const stop = (fn: () => void) => (e: React.MouseEvent) => {
   fn();
 };
 
-export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onRequestDelete }: TraineeCardProps) {
+export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onRequestDelete, onRequestEdit }: TraineeCardProps) {
   const email = getTraineeEmail(t);
   const password = getTraineePassword(t);
 
@@ -128,6 +129,15 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
           </button>
         </div>
 
+        <div className="flex items-center gap-2">
+        <button
+          onClick={stop(() => onRequestEdit(t))}
+          className="p-2 rounded-xl bg-[#222222] text-gray-200 hover:bg-[#2F2F2F] border border-[#383838] transition-all cursor-pointer shrink-0"
+          title="تعديل بيانات المشترك"
+          aria-label="تعديل بيانات المشترك"
+        >
+          <Pencil className="w-4 h-4 text-[#9CFF00]" />
+        </button>
         <button
           onClick={stop(() => onRequestDelete(t))}
           className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/25 border border-red-500/20 transition-all cursor-pointer shrink-0"
@@ -136,6 +146,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
         >
           <Trash2 className="w-4 h-4" />
         </button>
+        </div>
       </div>
     </div>
   );

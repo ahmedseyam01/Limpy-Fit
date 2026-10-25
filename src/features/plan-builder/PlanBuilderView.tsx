@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, Check, Copy, Dumbbell, FileText, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { Calendar, Check, Copy, Dumbbell, FileText, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import type { DaySchedule, DietPlan, Exercise, Meal, Trainee } from '../../types/nutrition';
 import { GOAL_LABELS_AR, WEEK_DAYS } from '../../constants';
+import { PlanSettingsPanel } from './PlanSettingsPanel';
 import { createDefaultWeek, createFreeTextItem, getWeekSchedule, sumMacros } from '../../utils/plan';
 
 interface PlanBuilderViewProps {
@@ -9,6 +10,7 @@ interface PlanBuilderViewProps {
   plan: DietPlan;
   onSavePlan: (plan: DietPlan) => void;
   onExportPdf: () => void;
+  onEditTrainee: () => void;
 }
 
 const parseOptionalInt = (value: string) => (value === '' ? undefined : parseInt(value, 10) || 0);
@@ -21,7 +23,7 @@ const MACRO_FIELDS: { key: MacroKey; label: string }[] = [
   { key: 'totalFats', label: 'دهون (ج)' }
 ];
 
-export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf }: PlanBuilderViewProps) {
+export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEditTrainee }: PlanBuilderViewProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [copiedNotification, setCopiedNotification] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -85,14 +87,25 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf }: Plan
           </p>
         </div>
 
-        <button
-          onClick={onExportPdf}
-          className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(156,255,0,0.4)] cursor-pointer"
-        >
-          <FileText className="w-4 h-4 stroke-[2.5]" />
-          <span>تصدير PDF الأسبوعي 📄</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={onEditTrainee}
+            className="bg-[#222222] hover:bg-[#2F2F2F] text-white border border-[#383838] px-4 py-3 rounded-2xl text-xs font-bold flex items-center gap-2 cursor-pointer"
+          >
+            <Pencil className="w-4 h-4 text-[#9CFF00]" />
+            <span>تعديل بيانات المتدرب</span>
+          </button>
+          <button
+            onClick={onExportPdf}
+            className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(156,255,0,0.4)] cursor-pointer"
+          >
+            <FileText className="w-4 h-4 stroke-[2.5]" />
+            <span>تصدير PDF الأسبوعي 📄</span>
+          </button>
+        </div>
       </div>
+
+      <PlanSettingsPanel trainee={trainee} plan={plan} onSavePlan={onSavePlan} />
 
       {/* 7-day selector */}
       <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-4 space-y-4">
