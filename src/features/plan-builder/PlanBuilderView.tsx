@@ -4,6 +4,7 @@ import type { DaySchedule, DietPlan, Exercise, Meal, Trainee } from '../../types
 import { GOAL_LABELS_AR, WEEK_DAYS } from '../../constants';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { PlanSettingsPanel } from './PlanSettingsPanel';
+import { ProgressPanel } from './ProgressPanel';
 import { createDefaultWeek, createFreeTextItem, getWeekSchedule, sumMacros } from '../../utils/plan';
 
 interface PlanBuilderViewProps {
@@ -109,6 +110,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
       </div>
 
       <PlanSettingsPanel trainee={trainee} plan={plan} onSavePlan={onSavePlan} />
+      <ProgressPanel trainee={trainee} />
 
       {/* 7-day selector */}
       <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-4 space-y-4">
