@@ -67,7 +67,8 @@ export default async function handler(req: ApiRequest, res: ServerResponse) {
       ...store.trainees[idx],
       weight: weight as number,
       progressLogs: progressLogs.slice(0, MAX_PROGRESS_LOGS),
-      updatedAt: Math.max(Number(updatedAt) || 0, Date.now())
+      // Keep the device's edit time (like coach edits) so a quick later edit is never treated as older.
+      updatedAt: Number(updatedAt) || Date.now()
     };
     store.lastUpdated = Date.now();
     await writeStore(store);
