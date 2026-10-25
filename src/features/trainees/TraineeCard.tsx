@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { Copy, Dumbbell, FileText, Key, MessageCircle, Pencil, Trash2 } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { ChevronDown, Copy, Dumbbell, FileText, Key, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import type { Trainee } from '../../types/nutrition';
 import { GOAL_LABELS_AR, type AdminView } from '../../constants';
 import {
@@ -28,6 +28,7 @@ const stop = (fn: () => void) => (e: React.MouseEvent) => {
 };
 
 export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onRequestDelete, onRequestEdit }: TraineeCardProps) {
+  const [showCredentials, setShowCredentials] = useState(false);
   const email = getTraineeEmail(t);
   const password = getTraineePassword(t);
 
@@ -58,10 +59,16 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
       {/* Login credentials */}
       <div className="bg-[#0A0A0A] border border-[#262626] rounded-2xl p-3 space-y-2">
         <div className="flex items-center justify-between text-[11px]">
-          <span className="text-gray-400 font-mono font-bold flex items-center gap-1">
+          <button
+            type="button"
+            onClick={stop(() => setShowCredentials(v => !v))}
+            aria-expanded={showCredentials}
+            className="text-gray-300 font-bold flex items-center gap-1 cursor-pointer hover:text-white"
+          >
             <Key className="w-3 h-3 text-[#9CFF00]" />
-            بيانات دخول المشترك:
-          </span>
+            بيانات الدخول
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showCredentials ? 'rotate-180' : ''}`} />
+          </button>
           <button
             type="button"
             onClick={stop(() => window.open(buildWhatsAppCredentialsUrl(t), '_blank', 'noopener'))}
@@ -73,6 +80,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
           </button>
         </div>
 
+        {showCredentials && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
           <button
             type="button"
@@ -94,6 +102,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
             <Copy className="w-3 h-3 text-gray-500 group-hover/pass:text-[#9CFF00] shrink-0" />
           </button>
         </div>
+        )}
       </div>
 
       {/* Goal */}
