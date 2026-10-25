@@ -23,6 +23,8 @@ function vercel(args, options = {}) {
   return spawnSync('npx', ['--yes', 'vercel@latest', ...args], {
     encoding: 'utf8',
     shell: process.platform === 'win32',
+    // Captured calls must never wait for keyboard input.
+    stdio: options.input === undefined ? ['ignore', 'pipe', 'pipe'] : 'pipe',
     ...options
   });
 }
@@ -41,6 +43,7 @@ const env = readEnvFile('.env.local');
 for (const key of REQUIRED) if (!env[key]) fail(`${key} is missing in .env.local`);
 if (env.AUTH_SECRET.length < 16) fail('AUTH_SECRET must be at least 16 characters');
 
+console.log('Checking Vercel login... (the first run downloads the Vercel CLI, this can take 1-2 minutes)');
 if (vercel(['whoami']).status !== 0) {
   console.log('Log in to Vercel (a browser window will open)...');
   if (vercel(['login'], { stdio: 'inherit' }).status !== 0) fail('Vercel login failed');
@@ -51,6 +54,7 @@ if (!existsSync('.vercel/project.json')) {
   if (vercel(['link'], { stdio: 'inherit' }).status !== 0) fail('vercel link failed');
 }
 
+console.log('Reading existing Vercel settings...');
 const listed = vercel(['env', 'ls', TARGET]);
 if (listed.status !== 0) fail(`Could not list Vercel env vars:\n${listed.stderr || listed.stdout}`);
 const existing = new Set([...REQUIRED, ...OPTIONAL].filter(key => new RegExp(`\\b${key}\\b`).test(`${listed.stdout}\n${listed.stderr}`)));
