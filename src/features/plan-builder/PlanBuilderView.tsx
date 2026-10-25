@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, Check, Copy, Dumbbell, FileText, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import type { DaySchedule, DietPlan, Exercise, Meal, Trainee } from '../../types/nutrition';
 import { GOAL_LABELS_AR, WEEK_DAYS } from '../../constants';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { PlanSettingsPanel } from './PlanSettingsPanel';
 import { createDefaultWeek, createFreeTextItem, getWeekSchedule, sumMacros } from '../../utils/plan';
 
@@ -26,6 +27,7 @@ const MACRO_FIELDS: { key: MacroKey; label: string }[] = [
 export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEditTrainee }: PlanBuilderViewProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [copiedNotification, setCopiedNotification] = useState(false);
+  const [confirmCopy, setConfirmCopy] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(copiedTimer.current), []);
 
@@ -44,6 +46,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
     updateActiveDay(d => ({ ...d, exercises: fn(d.exercises ?? []) }));
 
   const handleCopyDayToAll = () => {
+    setConfirmCopy(false);
     const stamp = Date.now();
     const days = week.map((d, idx) => ({
       ...d,
@@ -117,7 +120,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handleCopyDayToAll}
+              onClick={() => setConfirmCopy(true)}
               className="bg-[#222222] hover:bg-[#333333] border border-[#3A3A3A] text-[#9CFF00] font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
@@ -319,6 +322,16 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
           </div>
         )}
       </div>
+      {confirmCopy && (
+        <ConfirmDialog
+          title={`نسخ وجبات ${WEEK_DAYS[activeDayIndex].ar} لكل الأيام؟`}
+          message="وجبات الأيام الستة التانية هتتمسح وتتبدل بوجبات اليوم ده. التمارين مش هتتأثر."
+          confirmLabel="نسخ لكل الأيام"
+          tone="primary"
+          onCancel={() => setConfirmCopy(false)}
+          onConfirm={handleCopyDayToAll}
+        />
+      )}
     </div>
   );
 }

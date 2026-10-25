@@ -8,7 +8,7 @@ import { useAppData } from './hooks/useAppData';
 import { findPlanForTrainee } from './utils/plan';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
-import { ConfirmDeleteModal } from './components/ui/ConfirmDeleteModal';
+import { ConfirmDialog } from './components/ui/ConfirmDialog';
 import { LoginModal } from './features/auth/LoginModal';
 import { TraineesListView } from './features/trainees/TraineesListView';
 import { TraineeFormModal } from './features/trainees/TraineeFormModal';
@@ -216,8 +216,10 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
         </main>
 
         {traineeToDelete && (
-          <ConfirmDeleteModal
-            traineeName={traineeToDelete.name}
+          <ConfirmDialog
+            title="تأكيد مسح المشترك"
+            message={<>هل أنت متأكد من مسح حساب المشترك <span className="text-white font-bold">"{traineeToDelete.name}"</span> والنظام الخاص به نهائياً؟</>}
+            confirmLabel="مسح المشترك 🗑️"
             onCancel={closeDeleteModal}
             onConfirm={confirmDeleteTrainee}
           />
