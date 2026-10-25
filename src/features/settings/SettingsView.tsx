@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { CoachProfile } from '../../types/nutrition';
-import { Settings, ShieldCheck, Check, Save, Cloud } from 'lucide-react';
+import { Settings, ShieldCheck, Check, Save, Cloud, ChevronDown } from 'lucide-react';
 import { LimbyLogo } from '../../components/layout/LimbyLogo';
 import { useToast } from '../../components/ui/Toast';
 import { getStoredFirebaseConfig, saveFirebaseConfig, removeFirebaseConfig, isFirebaseConnected } from '../../lib/firebase';
@@ -195,8 +195,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </form>
 
-      {/* Firebase Cloud Sync Settings Panel */}
-      <CloudSyncConfigPanel />
+      {/* Technical options most coaches never need: hidden until asked for */}
+      <details className="group bg-[#161616] border border-[#2A2A2A] rounded-3xl">
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-2 p-5 text-sm font-bold text-gray-300">
+          <span>إعدادات متقدمة (مزامنة Firebase الاختيارية)</span>
+          <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="px-5 pb-5 space-y-3">
+          <p className="text-[11px] text-gray-400">
+            مش محتاج تلمس الجزء ده: بياناتك بتتزامن بين كل أجهزتك تلقائياً. ده لربط حساب Firebase خاص بيك بس.
+          </p>
+          <CloudSyncConfigPanel />
+        </div>
+      </details>
     </div>
   );
 };
