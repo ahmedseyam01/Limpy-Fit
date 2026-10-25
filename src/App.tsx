@@ -38,7 +38,11 @@ export function App() {
 function SessionApp({ session, onLogout }: { session: Session; onLogout: () => void }) {
   const data = useAppData(session, onLogout);
 
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const requestLogout = useCallback(() => setConfirmLogout(true), []);
+
   const handleLogout = useCallback(async () => {
+    setConfirmLogout(false);
     const synced = await data.flushPending();
     if (!synced && !window.confirm('فيه تعديلات لسه ما اترفعتش على السيرفر (مفيش اتصال). لو خرجت دلوقتي هتضيع. متأكد؟')) return;
     onLogout();
@@ -61,9 +65,18 @@ function SessionApp({ session, onLogout }: { session: Session; onLogout: () => v
         </div>
       )}
       {session.role === 'trainee' ? (
-        <TraineeApp data={data} traineeId={session.traineeId} onLogout={handleLogout} />
+        <TraineeApp data={data} traineeId={session.traineeId} onLogout={requestLogout} />
       ) : (
-        <AdminApp data={data} onLogout={handleLogout} />
+        <AdminApp data={data} onLogout={requestLogout} />
+      )}
+      {confirmLogout && (
+        <ConfirmDialog
+          title="تسجيل الخروج؟"
+          message="هتحتاج تكتب الإيميل والباسورد تاني عشان تدخل. بياناتك محفوظة على السيرفر."
+          confirmLabel="خروج"
+          onCancel={() => setConfirmLogout(false)}
+          onConfirm={handleLogout}
+        />
       )}
     </>
   );

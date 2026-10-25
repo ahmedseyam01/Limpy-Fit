@@ -1,5 +1,5 @@
 import type React from 'react';
-import { UserPlus, ArrowRight, FileText, Settings } from 'lucide-react';
+import { UserPlus, ArrowRight, FileText, LogOut, Settings } from 'lucide-react';
 import type { CoachProfile } from '../../types/nutrition';
 import type { AdminView } from '../../constants';
 
@@ -92,9 +92,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               {onLogout && (
                 <button
                   onClick={onLogout}
-                  className="bg-[#1A1010] hover:bg-[#2A1515] text-red-400 border border-red-500/30 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0"
+                  aria-label="تسجيل الخروج"
+                  title="تسجيل الخروج"
+                  className="bg-[#1A1010] hover:bg-[#2A1515] text-red-400 border border-red-500/30 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0"
                 >
-                  خروج
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">خروج</span>
                 </button>
               )}
             </>
@@ -103,11 +106,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               {currentView !== 'list' && setCurrentView && (
                 <button
                   onClick={() => setCurrentView('list')}
+                  aria-label="الرجوع لقائمة المشتركين"
+                  title="قائمة المشتركين"
                   className="bg-[#1C1C1C] hover:bg-[#262626] text-gray-200 border border-[#333333] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0"
                 >
                   <ArrowRight className="w-3.5 h-3.5 text-[#9CFF00]" />
                   <span className="hidden sm:inline">المشتركين</span>
-                  <span className="sm:hidden">قائمة</span>
                 </button>
               )}
 
@@ -132,19 +136,23 @@ export const Navbar: React.FC<NavbarProps> = ({
               {onOpenAddModal && (
                 <button
                   onClick={onOpenAddModal}
+                  aria-label="إضافة مشترك جديد"
                   className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(156,255,0,0.3)] active:scale-95 transition-all cursor-pointer shrink-0"
                 >
                   <UserPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>+ مشترك</span>
+                  <span className="hidden min-[400px]:inline">+ مشترك</span>
                 </button>
               )}
 
               {onLogout && (
                 <button
                   onClick={onLogout}
-                  className="bg-[#1A1010] hover:bg-[#2A1515] text-red-400 border border-red-500/30 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0"
+                  aria-label="تسجيل الخروج"
+                  title="تسجيل الخروج"
+                  className="bg-[#1A1010] hover:bg-[#2A1515] text-red-400 border border-red-500/30 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0"
                 >
-                  خروج
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">خروج</span>
                 </button>
               )}
             </>
