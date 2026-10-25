@@ -245,6 +245,7 @@ function AdminApp({ data, onLogout }: { data: AppData; onLogout: () => void }) {
         <TraineeFormModal
           isOpen={traineeForm !== null}
           trainee={traineeForm === 'new' ? null : traineeForm}
+          otherTrainees={traineeForm && traineeForm !== 'new' ? trainees.filter(t => t.id !== traineeForm.id) : trainees}
           onClose={() => setTraineeForm(null)}
           onSubmit={handleSubmitTrainee}
         />

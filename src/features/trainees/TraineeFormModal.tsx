@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { Trainee, Goal, ActivityLevel, Gender } from '../../types/nutrition';
 import { computeTraineeNutritionStats } from '../../utils/calculator';
-import { todayIso } from '../../utils/trainee';
+import { normalizePhone, todayIso } from '../../utils/trainee';
 
 // Not editable in the form yet; kept on the record for future use.
 const DEFAULT_TARGET_WEIGHT = 72;
@@ -12,11 +12,13 @@ interface TraineeFormModalProps {
   isOpen: boolean;
   /** When set, the form edits this trainee instead of creating a new one. */
   trainee?: Trainee | null;
+  /** All other trainees: their emails and phones must not be reused (login would match the wrong person). */
+  otherTrainees: Trainee[];
   onClose: () => void;
   onSubmit: (trainee: Trainee) => void;
 }
 
-export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trainee, onClose, onSubmit }) => {
+export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trainee, otherTrainees, onClose, onSubmit }) => {
   const isEdit = !!trainee;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -50,6 +52,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
     setPassword(trainee?.password ?? '');
     setIsManualEmail(!!trainee);
     setIsManualPassword(!!trainee);
+    setFormError('');
   }, [isOpen, trainee]);
 
   // Lock background body scroll while the modal is open
@@ -63,16 +66,26 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
     };
   }, [isOpen]);
 
-  // Helper function to generate clean Email with name + 2 digits
+  const [formError, setFormError] = useState('');
+  const usedEmails = useMemo(
+    () => new Set(otherTrainees.map(t => t.email?.trim().toLowerCase()).filter(Boolean)),
+    [otherTrainees]
+  );
+  const usedPhones = useMemo(
+    () => new Set(otherTrainees.map(t => normalizePhone(t.phone || '').replace(/^0+/, '')).filter(p => p.length >= 8)),
+    [otherTrainees]
+  );
+
+  // Login email from the name (Latin letters) or "user", plus a number that no other trainee has.
   const generateUniqueEmail = (rawName: string): string => {
     if (!rawName.trim()) return '';
-    const twoDigits = Math.floor(10 + Math.random() * 90); // Exactly 2 digits (10-99)
     const cleanLatin = rawName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    if (cleanLatin.length >= 2) {
-      return `${cleanLatin}${twoDigits}@limbyfit.com`;
+    const base = cleanLatin.length >= 2 ? cleanLatin : 'user';
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const candidate = `${base}${Math.floor(100 + Math.random() * 900)}@limbyfit.com`;
+      if (!usedEmails.has(candidate)) return candidate;
     }
-    return `user${twoDigits}@limbyfit.com`;
+    return `${base}${Date.now().toString().slice(-6)}@limbyfit.com`;
   };
 
   // Helper function to generate clean Passcode (e.g. fit5338)
@@ -133,7 +146,17 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
     e.preventDefault();
     if (!name.trim()) return;
 
-    const finalEmail = email || `${name.trim().toLowerCase().replace(/\s+/g, '')}${Math.floor(100 + Math.random() * 900)}@limbyfit.com`;
+    const finalEmail = (email || generateUniqueEmail(name)).trim();
+    if (usedEmails.has(finalEmail.toLowerCase())) {
+      setFormError('البريد ده مستخدم لمتدرب تاني. غيّره أو دوس "إعادة توليد".');
+      return;
+    }
+    const phoneKey = normalizePhone(phone).replace(/^0+/, '');
+    if (phoneKey.length >= 8 && [...usedPhones].some(p => p.endsWith(phoneKey) || phoneKey.endsWith(p))) {
+      setFormError('رقم الهاتف ده مسجل لمتدرب تاني.');
+      return;
+    }
+    setFormError('');
     const finalPassword = password || ('fit' + Math.floor(1000 + Math.random() * 9000));
 
     const record: Trainee = isEdit
@@ -468,6 +491,12 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
               className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2 px-3 text-xs outline-none resize-none"
             />
           </div>
+
+          {formError && (
+            <div role="alert" className="p-2.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400">
+              {formError}
+            </div>
+          )}
 
           {/* Submit Action Footer */}
           <div className="pt-4 border-t border-[#262626] flex items-center justify-end gap-3 mt-6 pb-2">
