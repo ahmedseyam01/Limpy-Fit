@@ -5,8 +5,15 @@ to view the plan and log weight. React 18 + TypeScript + Vite + Tailwind.
 
 ## Setup (required before deploying)
 
-The API needs these environment variables (Vercel → Project → Settings → Environment Variables).
-See `.env.example`; for local development copy it to `.env.local`.
+The API needs these environment variables. They are kept in the git-ignored `.env.local`
+(see `.env.example`), which `npm run dev` reads automatically. To copy them to Vercel:
+
+```bash
+npx vercel login
+npm run setup:vercel
+```
+
+Then redeploy. Variables already set on Vercel are never overwritten.
 
 | Variable | Purpose |
 | --- | --- |
