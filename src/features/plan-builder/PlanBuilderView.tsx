@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar, Check, Copy, Dumbbell, FileText, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { Calendar, Check, Clock, Copy, Dumbbell, FileText, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import type { DaySchedule, DietPlan, Exercise, Meal, Trainee } from '../../types/nutrition';
 import { GOAL_LABELS_AR, WEEK_DAYS } from '../../constants';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
@@ -29,6 +29,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [copiedNotification, setCopiedNotification] = useState(false);
   const [confirmCopy, setConfirmCopy] = useState(false);
+  const [mealToDelete, setMealToDelete] = useState<number | null>(null);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(copiedTimer.current), []);
 
@@ -60,9 +61,30 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
     copiedTimer.current = setTimeout(() => setCopiedNotification(false), 3000);
   };
 
-  const updateMeal = (mealIdx: number, update: (meal: Meal) => Meal) => {
-    const meals = dayMeals.map((m, i) => (i === mealIdx ? update(m) : m));
-    updateActiveDay(d => ({ ...d, meals }), { meals });
+  const setMeals = (meals: Meal[]) => updateActiveDay(d => ({ ...d, meals }), { meals });
+  const updateMeal = (mealIdx: number, update: (meal: Meal) => Meal) =>
+    setMeals(dayMeals.map((m, i) => (i === mealIdx ? update(m) : m)));
+
+  const handleAddMeal = () =>
+    setMeals([
+      ...dayMeals,
+      {
+        id: `m-${Date.now()}`,
+        type: 'snack_2',
+        titleAr: `${dayMeals.length + 1}. وجبة إضافية`,
+        titleEn: 'Extra meal',
+        items: [createFreeTextItem(dayMeals.length, '')],
+        totalCalories: 0,
+        totalProtein: 0,
+        totalCarbs: 0,
+        totalFats: 0,
+        notes: ''
+      }
+    ]);
+
+  const handleDeleteMeal = () => {
+    if (mealToDelete !== null) setMeals(dayMeals.filter((_, i) => i !== mealToDelete));
+    setMealToDelete(null);
   };
 
   const handleUpdateMealText = (mealIdx: number, text: string) =>
@@ -190,10 +212,38 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
             key={meal.id}
             className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-5 space-y-3 shadow-xl hover:border-[#9CFF00]/40 transition-all"
           >
-            <span className="text-xs font-bold text-[#9CFF00] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#9CFF00]" />
-              {meal.titleAr}
-            </span>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#9CFF00] shrink-0" />
+              <input
+                type="text"
+                value={meal.titleAr}
+                onChange={e => updateMeal(mIdx, m => ({ ...m, titleAr: e.target.value }))}
+                aria-label="اسم الوجبة"
+                className="flex-1 min-w-0 bg-transparent border-b border-transparent hover:border-[#333] focus:border-[#9CFF00] text-xs font-bold text-[#9CFF00] py-1 outline-none"
+              />
+              <label className="flex items-center gap-1 text-gray-400 shrink-0" title="ميعاد الوجبة (اختياري)">
+                <Clock className="w-3.5 h-3.5" />
+                <input
+                  type="time"
+                  dir="ltr"
+                  value={meal.timing || ''}
+                  onChange={e => updateMeal(mIdx, m => ({ ...m, timing: e.target.value }))}
+                  aria-label="ميعاد الوجبة"
+                  className="bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-[11px] rounded-lg px-1.5 py-1 outline-none [color-scheme:dark]"
+                />
+              </label>
+              {dayMeals.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setMealToDelete(mIdx)}
+                  aria-label="حذف الوجبة"
+                  title="حذف الوجبة"
+                  className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg shrink-0 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
 
             <textarea
               rows={2}
@@ -225,6 +275,15 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
             </div>
           </div>
         ))}
+
+        <button
+          type="button"
+          onClick={handleAddMeal}
+          className="w-full border border-dashed border-[#333] hover:border-[#9CFF00]/60 text-gray-300 hover:text-[#9CFF00] rounded-2xl py-3 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          إضافة وجبة ليوم {activeDay?.dayNameAr}
+        </button>
       </div>
 
       {/* Exercises */}
@@ -325,6 +384,15 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
           </div>
         )}
       </div>
+      {mealToDelete !== null && (
+        <ConfirmDialog
+          title="حذف الوجبة؟"
+          message={`"${dayMeals[mealToDelete]?.titleAr}" هتتمسح من يوم ${activeDay?.dayNameAr} بس.`}
+          confirmLabel="حذف الوجبة"
+          onCancel={() => setMealToDelete(null)}
+          onConfirm={handleDeleteMeal}
+        />
+      )}
       {confirmCopy && (
         <ConfirmDialog
           title={`نسخ وجبات ${WEEK_DAYS[activeDayIndex].ar} لكل الأيام؟`}
