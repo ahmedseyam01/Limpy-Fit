@@ -1,10 +1,10 @@
 import type React from 'react';
 import type { Trainee, DietPlan, CoachProfile } from '../../types/nutrition';
+import { GOAL_LABELS_AR } from '../../constants';
 import { getWeekSchedule, hasMacros, isFreeTextItem, sumMacros } from '../../utils/plan';
 import { LimbyLogo } from '../../components/layout/LimbyLogo';
 import { 
   Printer, 
-  Download, 
   ArrowRight, 
   ShieldCheck, 
   Flame, 
@@ -30,16 +30,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
     window.print();
   };
 
-  const getGoalText = (goal: string) => {
-    if (trainee.notes) return trainee.notes;
-    switch (goal) {
-      case 'fat_loss': return 'تنشيف وحرق دهون';
-      case 'extreme_cut': return 'تنشيف قاسي وسريع';
-      case 'muscle_gain': return 'تضخيم وبناء عضلات';
-      case 'recomp': return 'إعادة تشكيل الجسم';
-      default: return 'تثبيت الوزن وتغذية صحية';
-    }
-  };
+
 
   const daysList = getWeekSchedule(plan);
 
@@ -61,22 +52,15 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
           <span>الرجوع للتعديل</span>
         </button>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <div className="flex flex-col items-stretch sm:items-end gap-1 w-full sm:w-auto">
           <button
             onClick={handlePrint}
             className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black px-5 py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(156,255,0,0.35)] transition-all cursor-pointer w-full sm:w-auto"
           >
             <Printer className="w-4 h-4 stroke-[2.5]" />
-            <span>طباعة أو حفظ PDF بضغطة زر (Print/Save PDF)</span>
+            <span>حفظ PDF أو طباعة</span>
           </button>
-
-          <button
-            onClick={handlePrint}
-            className="bg-[#262626] hover:bg-[#333333] border border-[#3A3A3A] text-white font-bold px-4 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer w-full sm:w-auto"
-          >
-            <Download className="w-4 h-4 text-blue-400" />
-            <span>تحميل مباشر</span>
-          </button>
+          <span className="text-[10px] text-gray-500 text-center sm:text-left">لحفظه كملف: اختار «Save as PDF» من نافذة الطباعة</span>
         </div>
       </div>
 
@@ -119,7 +103,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
 
             <div className="text-right">
               <span className="text-xs text-gray-500 font-bold block">الهدف (Goal)</span>
-              <span className="text-sm font-black text-[#9CFF00] block mt-1">{getGoalText(trainee.goal)}</span>
+              <span className="text-sm font-black text-[#9CFF00] block mt-1">{GOAL_LABELS_AR[trainee.goal] ?? GOAL_LABELS_AR.fat_loss}</span>
             </div>
 
             <div className="text-right border-t border-[#222222] pt-3">
