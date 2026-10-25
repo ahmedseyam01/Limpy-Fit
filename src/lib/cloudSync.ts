@@ -7,8 +7,12 @@ const PUSH_RETRY_MS = 5000;
 /** How often other devices' changes are pulled while the tab is visible. */
 const POLL_INTERVAL_MS = 4000;
 
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 interface SyncClientOptions {
   token: string;
+  /** Upload progress, for a "saving / saved" indicator. */
+  onSaveStatus?: (status: SaveStatus) => void;
   /** Data from the server (after a poll or as the result of an upload). Always merge it, never replace. */
   onRemoteData: (data: SyncData) => void;
   /** First pull finished (ok = reached the server). */
@@ -23,7 +27,7 @@ export type SyncClient = ReturnType<typeof createSyncClient>;
  * Keeps one logged-in session in sync with /api/sync: debounced, serialized uploads
  * (only the latest body is sent, failed ones are retried) plus polling for other devices' changes.
  */
-export function createSyncClient({ token, onRemoteData, onFirstLoad, onUnauthorized }: SyncClientOptions) {
+export function createSyncClient({ token, onRemoteData, onFirstLoad, onUnauthorized, onSaveStatus }: SyncClientOptions) {
   let lastRevision: number | null = null;
   let pendingBody: unknown = null;
   let pushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -61,10 +65,12 @@ export function createSyncClient({ token, onRemoteData, onFirstLoad, onUnauthori
     inFlight = postSyncData(token, body).then(
       data => {
         receive(data);
+        if (pendingBody === null) onSaveStatus?.('saved');
         return true;
       },
       err => {
         if (handleUnauthorized(err)) return false;
+        onSaveStatus?.('error');
         // Keep it queued (unless something newer replaced it) and retry later.
         if (pendingBody === null) pendingBody = body;
         if (!pushTimer && !stopped) pushTimer = setTimeout(flush, PUSH_RETRY_MS);
@@ -81,6 +87,7 @@ export function createSyncClient({ token, onRemoteData, onFirstLoad, onUnauthori
   function schedulePush(body: unknown, immediate = false) {
     if (stopped) return;
     pendingBody = body;
+    onSaveStatus?.('saving');
     if (pushTimer) clearTimeout(pushTimer);
     pushTimer = setTimeout(flush, immediate ? 0 : PUSH_DEBOUNCE_MS);
   }

@@ -10,6 +10,7 @@ import { computeTraineeNutritionStats } from './utils/calculator';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { ConfirmDialog } from './components/ui/ConfirmDialog';
+import { SaveIndicator } from './components/ui/SaveIndicator';
 import { LoginModal } from './features/auth/LoginModal';
 import { TraineesListView } from './features/trainees/TraineesListView';
 import { TraineeFormModal } from './features/trainees/TraineeFormModal';
@@ -69,6 +70,7 @@ function SessionApp({ session, onLogout }: { session: Session; onLogout: () => v
       ) : (
         <AdminApp data={data} onLogout={requestLogout} />
       )}
+      <SaveIndicator status={data.saveStatus} />
       {confirmLogout && (
         <ConfirmDialog
           title="تسجيل الخروج؟"

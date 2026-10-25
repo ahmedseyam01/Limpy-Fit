@@ -5,7 +5,7 @@ import { DEFAULT_COACH_PROFILE } from '../data/initialData';
 import { STORAGE_KEYS } from '../constants';
 import type { Session } from '../lib/api';
 import { readArray, readJson, readString, removeKey, writeJson } from '../lib/storage';
-import { createSyncClient, type SyncClient } from '../lib/cloudSync';
+import { createSyncClient, type SaveStatus, type SyncClient } from '../lib/cloudSync';
 import {
   deletePlanFromCloud,
   deleteTraineeFromCloud,
@@ -50,6 +50,7 @@ export function useAppData(session: Session, onUnauthorized: () => void) {
   /** False until the first server response on a device with no cached data (avoids flashing an empty list). */
   const [isReady, setIsReady] = useState(hasCachedData);
   const [isOffline, setIsOffline] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   usePersisted(STORAGE_KEYS.trainees, trainees, STORAGE_KEYS.traineesBackup);
   usePersisted(STORAGE_KEYS.plans, dietPlans, STORAGE_KEYS.plansBackup);
@@ -115,7 +116,8 @@ export function useAppData(session: Session, onUnauthorized: () => void) {
         setIsReady(true);
         setIsOffline(!ok);
       },
-      onUnauthorized
+      onUnauthorized,
+      onSaveStatus: setSaveStatus
     });
     syncRef.current = client;
 
@@ -200,6 +202,7 @@ export function useAppData(session: Session, onUnauthorized: () => void) {
     dietPlans,
     isReady,
     isOffline,
+    saveStatus,
     addTrainee,
     updateTrainee,
     deleteTrainee,
