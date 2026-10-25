@@ -193,12 +193,12 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
               {meal.titleAr}
             </span>
 
-            <input
-              type="text"
+            <textarea
+              rows={2}
               value={meal.items[0]?.foodNameAr || ''}
               onChange={e => handleUpdateMealText(mIdx, e.target.value)}
-              placeholder="اكتب أطعمة هذه الوجبة هنا بالتفصيل..."
-              className="w-full bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-xs rounded-2xl p-3 outline-none font-medium"
+              placeholder="اكتب أطعمة هذه الوجبة هنا بالتفصيل... (تقدر تنزل سطر جديد لكل صنف)"
+              className="w-full bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-xs leading-relaxed rounded-2xl p-3 outline-none font-medium resize-y min-h-[3.5rem] [field-sizing:content]"
             />
 
             <div>
