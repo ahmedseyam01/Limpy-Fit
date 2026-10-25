@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Trainee, DietPlan, CoachProfile, ProgressLog } from '../../types/nutrition';
 import { GOAL_LABELS_AR } from '../../constants';
-import { createDefaultPlan, getWeekSchedule, hasMacros, isFreeTextItem, mealMacros, sumMacros } from '../../utils/plan';
+import { createDefaultPlan, getWeekSchedule, todayWeekIndex, hasMacros, isFreeTextItem, mealMacros, sumMacros } from '../../utils/plan';
 import { todayIso } from '../../utils/trainee';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
@@ -36,7 +36,8 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
   onUpdateTraineeProgress,
   onViewPdf
 }) => {
-  const [activeDayIndex, setActiveDayIndex] = useState<number>(0);
+  const today = todayWeekIndex();
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(today);
   const [activeTab, setActiveTab] = useState<'plan' | 'progress' | 'notes'>('plan');
   
   // New Progress Log Input
@@ -183,7 +184,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                       : 'bg-[#141414] text-gray-300 border-[#262626] hover:border-gray-600 font-bold'
                   }`}
                 >
-                  <span className="text-[10px] block font-mono opacity-80 leading-tight">اليوم {idx + 1}</span>
+                  <span className="text-[10px] block font-mono opacity-80 leading-tight">{idx === today ? 'النهارده' : `اليوم ${idx + 1}`}</span>
                   <span className="text-[11px] sm:text-xs block font-extrabold mt-0.5 leading-tight">{d.dayNameAr}</span>
                 </button>
               ))}

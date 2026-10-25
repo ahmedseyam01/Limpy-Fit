@@ -45,6 +45,9 @@ export const mealMacros = (m: Meal): MacroSums => ({
   fats: m.totalFats || 0
 });
 
+/** Index of today in WEEK_DAYS (the week starts on Saturday). */
+export const todayWeekIndex = (date = new Date()) => (date.getDay() + 1) % 7;
+
 export function createDefaultWeek(): DaySchedule[] {
   return WEEK_DAYS.map((d, idx) => ({
     dayIndex: idx,
