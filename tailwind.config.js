@@ -23,6 +23,9 @@ export default {
       },
       fontFamily: {
         sans: ['Montserrat', 'Cairo', 'sans-serif'],
+        // Monospace fonts have no Arabic letters; without Cairo here the browser falls back to a
+        // monospaced Arabic font that renders words as spaced-out, disconnected letters.
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', '"Liberation Mono"', 'Cairo', 'monospace'],
       },
       boxShadow: {
         'neon': '0 0 20px rgba(156, 255, 0, 0.3)',
