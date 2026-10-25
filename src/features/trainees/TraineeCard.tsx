@@ -107,16 +107,12 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
       </div>
 
       {/* Goal */}
-      <div className="bg-[#0D0D0D] border border-[#262626] p-2.5 rounded-2xl text-xs text-gray-300 font-medium flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
+      <div className="bg-[#0D0D0D] border border-[#262626] p-2.5 rounded-2xl text-xs text-gray-300 font-medium space-y-1">
+        <div className="flex items-start gap-1.5">
           <span className="text-[#9CFF00] font-bold shrink-0">🎯 الهدف:</span>
-          <span className="font-extrabold text-white truncate">{GOAL_LABELS_AR[t.goal] ?? GOAL_LABELS_AR.fat_loss}</span>
+          <span className="font-extrabold text-white">{GOAL_LABELS_AR[t.goal] ?? GOAL_LABELS_AR.fat_loss}</span>
         </div>
-        {t.notes && (
-          <span className="text-[10px] text-gray-400 truncate max-w-[140px]" title={t.notes}>
-            ({t.notes})
-          </span>
-        )}
+        {t.notes && <p className="text-[11px] text-gray-400 leading-relaxed">📝 {t.notes}</p>}
       </div>
 
       {/* Actions */}
@@ -127,7 +123,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
             className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(156,255,0,0.25)] transition-all cursor-pointer"
           >
             <Dumbbell className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>تصميم النظام 📝</span>
+            <span className="whitespace-nowrap">تصميم النظام</span>
           </button>
 
           <button
@@ -135,7 +131,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
             className="bg-[#222222] hover:bg-[#2F2F2F] text-white border border-[#383838] px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
           >
             <FileText className="w-3.5 h-3.5 text-blue-400" />
-            <span>PDF 📄</span>
+            <span>PDF</span>
           </button>
         </div>
 
