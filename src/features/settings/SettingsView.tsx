@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { CoachProfile } from '../../types/nutrition';
 import { Settings, ShieldCheck, Check, Save, Cloud } from 'lucide-react';
 import { LimbyLogo } from '../../components/layout/LimbyLogo';
+import { useToast } from '../../components/ui/Toast';
 import { getStoredFirebaseConfig, saveFirebaseConfig, removeFirebaseConfig, isFirebaseConnected } from '../../lib/firebase';
 
 interface SettingsViewProps {
@@ -205,11 +206,12 @@ const CloudSyncConfigPanel: React.FC = () => {
   const [config, setConfig] = useState(() => getStoredFirebaseConfig() || { apiKey: '', projectId: '', authDomain: '', storageBucket: '', appId: '' });
   const [connected, setConnected] = useState(() => isFirebaseConnected());
   const [syncSaved, setSyncSaved] = useState(false);
+  const toast = useToast();
 
   const handleSaveConfig = (e: React.FormEvent) => {
     e.preventDefault();
     if (!config.apiKey || !config.projectId) {
-      alert('يرجى إدخال API Key و Project ID على الأقل للربط السحابي');
+      toast('يرجى إدخال API Key و Project ID على الأقل للربط السحابي', 'error');
       return;
     }
     saveFirebaseConfig(config);

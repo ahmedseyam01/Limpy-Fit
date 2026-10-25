@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react';
 import { ChevronDown, Copy, Dumbbell, FileText, Key, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import type { Trainee } from '../../types/nutrition';
+import { useToast } from '../../components/ui/Toast';
 import { GOAL_LABELS_AR, type AdminView } from '../../constants';
 import {
   buildWhatsAppCredentialsUrl,
@@ -16,11 +17,6 @@ interface TraineeCardProps {
   onRequestEdit: (trainee: Trainee) => void;
 }
 
-async function copyWithAlert(text: string, successMessage: string) {
-  const ok = await copyToClipboard(text);
-  alert(ok ? successMessage : `تعذر النسخ تلقائياً، انسخ يدوياً: ${text}`);
-}
-
 /** Runs a card action without also triggering the card's own click (open plan). */
 const stop = (fn: () => void) => (e: React.MouseEvent) => {
   e.stopPropagation();
@@ -29,6 +25,11 @@ const stop = (fn: () => void) => (e: React.MouseEvent) => {
 
 export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onRequestDelete, onRequestEdit }: TraineeCardProps) {
   const [showCredentials, setShowCredentials] = useState(false);
+  const toast = useToast();
+  const copy = async (text: string, successMessage: string) => {
+    const ok = await copyToClipboard(text);
+    toast(ok ? successMessage : `تعذر النسخ تلقائياً، انسخ يدوياً: ${text}`, ok ? 'success' : 'error');
+  };
   const email = getTraineeEmail(t);
   const password = getTraineePassword(t);
 
@@ -84,7 +85,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
           <button
             type="button"
-            onClick={stop(() => copyWithAlert(email, `تم نسخ البريد بنجاح: ${email}`))}
+            onClick={stop(() => copy(email, `تم نسخ البريد: ${email}`))}
             className="bg-[#141414] hover:bg-[#1F1F1F] px-2.5 py-1.5 rounded-xl border border-[#222] hover:border-[#9CFF00]/50 text-gray-300 flex items-center justify-between gap-1.5 transition-all cursor-pointer group/mail"
             title="اضغط لنسخ البريد الإلكتروني"
           >
@@ -94,7 +95,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
 
           <button
             type="button"
-            onClick={stop(() => copyWithAlert(password, `تم نسخ كلمة المرور بنجاح: ${password}`))}
+            onClick={stop(() => copy(password, 'تم نسخ كلمة المرور'))}
             className="bg-[#141414] hover:bg-[#1F1F1F] px-2.5 py-1.5 rounded-xl border border-[#222] hover:border-[#9CFF00]/50 text-[#9CFF00] font-bold flex items-center justify-between gap-1.5 transition-all cursor-pointer group/pass"
             title="اضغط لنسخ كلمة المرور"
           >
