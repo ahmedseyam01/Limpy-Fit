@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { Plus, Search, UserPlus } from 'lucide-react';
 import type { Trainee } from '../../types/nutrition';
-import type { AdminView } from '../../constants';
+import { GOAL_LABELS_AR, type AdminView } from '../../constants';
 import { TraineeCard } from './TraineeCard';
 
 interface TraineesListViewProps {
@@ -19,7 +19,13 @@ export function TraineesListView({ trainees, onOpenTrainee, onRequestDelete, onR
   const filteredTrainees = useMemo(() => {
     const q = deferredSearch.trim().toLowerCase();
     if (!q) return trainees;
-    return trainees.filter(t => t.name.toLowerCase().includes(q) || t.notes?.toLowerCase().includes(q));
+    const qDigits = q.replace(/[^0-9]/g, '').replace(/^0+/, '');
+    return trainees.filter(t => {
+      const text = [t.name, t.notes, t.email, GOAL_LABELS_AR[t.goal]].filter(Boolean).join(' ').toLowerCase();
+      if (text.includes(q)) return true;
+      // Phone: match the digits regardless of spaces, +20 or a leading 0
+      return qDigits.length >= 3 && (t.phone || '').replace(/[^0-9]/g, '').includes(qDigits);
+    });
   }, [trainees, deferredSearch]);
 
   return (
@@ -58,7 +64,7 @@ export function TraineesListView({ trainees, onOpenTrainee, onRequestDelete, onR
             type="search"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder="ابحث عن مشترك بالاسم أو الهدف..."
+            placeholder="ابحث بالاسم، الهدف، التليفون أو الإيميل..."
             className="w-full bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-xs rounded-2xl py-2.5 pr-10 pl-3 outline-none transition-all placeholder:text-gray-600"
           />
         </div>
