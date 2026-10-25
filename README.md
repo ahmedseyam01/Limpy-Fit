@@ -3,6 +3,18 @@
 Coach admin platform for building weekly diet & workout plans, plus a trainee portal
 to view the plan and log weight. React 18 + TypeScript + Vite + Tailwind.
 
+## Setup (required before deploying)
+
+The API needs these environment variables (Vercel → Project → Settings → Environment Variables).
+See `.env.example`; for local development copy it to `.env.local`.
+
+| Variable | Purpose |
+| --- | --- |
+| `AUTH_SECRET` | Long random string. Signs login tokens and encrypts stored data. **Never change it after going live.** |
+| `COACH_PASSWORD` | The coach (admin) password. |
+| `COACH_EMAIL` | Optional, defaults to `coachahmed123@limbyfit.com`. |
+| `SYNC_STORE_URL` | Optional restful-api.dev object URL. Locally, empty = temporary in-memory store. |
+
 ## Scripts
 
 ```bash
@@ -14,13 +26,18 @@ npm run typecheck  # type-check only
 ## Project structure
 
 ```
-api/sync.ts                 Vercel function: shared cloud store used to sync all devices
+api/
+  auth.ts                   POST login → signed token (coach or trainee), verified on the server
+  sync.ts                   GET/POST data (requires token; trainees only see/edit their own data)
+  _lib/                     Token signing, encrypted store, HTTP helpers
+shared/sync.ts              Merge rules used by both browser and server
 src/
   App.tsx                   Auth gate → login / trainee portal / coach admin
   hooks/
-    useAuth.ts              Role + logged-in trainee (persisted)
+    useAuth.ts              Server login, session token, per-account local cache
     useAppData.ts           Trainees, plans, coach profile: localStorage + cloud sync
   lib/
+    api.ts                  HTTP client for /api
     cloudSync.ts            Debounced, serialized uploads + polling for remote changes
     firebase.ts             Optional Firestore sync (SDK loaded lazily only when configured)
     storage.ts              Safe localStorage helpers
@@ -42,8 +59,11 @@ src/
 
 ## Sync model
 
-Every local change is saved to `localStorage` immediately and uploaded to `/api/sync`
-after a short debounce (only the latest state is sent). Other devices poll every few
-seconds while visible and on focus. Remote data is never applied while local edits are
-still pending upload, and deleted trainee IDs are tracked so stale devices can't bring
-them back.
+- Data lives on the server (encrypted at rest). Any device that logs in with the coach account
+  gets the same trainees; a new device shows a loading state, then the full list.
+- Data is merged **per trainee / per plan by last-edit time**, never replaced as a whole list,
+  so a device with an old or empty cache can't wipe what others saved. Deletions travel as
+  tombstones, so a stale device can't bring a deleted trainee back.
+- Edits are cached in `localStorage` and uploaded after a short debounce; failed uploads retry,
+  and edits made offline are uploaded when the connection returns.
+- Logging out removes that account's cached data from the device (after uploading pending edits).

@@ -1,5 +1,5 @@
 import type React from 'react';
-import { UserPlus, ArrowRight, FileText } from 'lucide-react';
+import { UserPlus, ArrowRight, FileText, Settings } from 'lucide-react';
 import type { CoachProfile } from '../../types/nutrition';
 import type { AdminView } from '../../constants';
 
@@ -112,6 +112,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
 
 
+
+              {setCurrentView && (
+                <button
+                  onClick={() => setCurrentView('settings')}
+                  aria-label="الإعدادات"
+                  title="إعدادات الكابتن والبراند"
+                  className={`border px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0 ${
+                    currentView === 'settings'
+                      ? 'bg-[#9CFF00]/15 border-[#9CFF00]/50 text-[#9CFF00]'
+                      : 'bg-[#1C1C1C] hover:bg-[#262626] border-[#333333] text-gray-200'
+                  }`}
+                >
+                  <Settings className="w-3.5 h-3.5 text-[#9CFF00]" />
+                  <span className="hidden sm:inline">الإعدادات</span>
+                </button>
+              )}
 
               {onOpenAddModal && (
                 <button

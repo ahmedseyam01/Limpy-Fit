@@ -3,11 +3,6 @@ export type Goal = 'fat_loss' | 'extreme_cut' | 'muscle_gain' | 'recomp' | 'main
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'heavy' | 'athlete';
 export type AuthRole = 'admin' | 'trainee' | null;
 
-export interface AuthState {
-  role: AuthRole;
-  activeTraineeId?: string;
-}
-
 export interface Trainee {
   id: string;
   name: string;
@@ -27,6 +22,8 @@ export interface Trainee {
   createdAt: string;
   activePlanId?: string;
   progressLogs: ProgressLog[];
+  /** Last edit time (ms) — used to merge changes from multiple devices. */
+  updatedAt?: number;
 }
 
 export interface ProgressLog {
@@ -134,6 +131,7 @@ export interface DietPlan {
   hydrationLiters: number;
   sleepHours: number;
   coachNotes: string;
+  updatedAt?: number;
 }
 
 export interface CoachProfile {
@@ -147,4 +145,5 @@ export interface CoachProfile {
   instagram: string;
   themeColor: string;
   generalInstructions: string[];
+  updatedAt?: number;
 }

@@ -1,95 +1,53 @@
 import React, { useState } from 'react';
 import { LimbyLogo } from '../../components/layout/LimbyLogo';
 import { Lock, Mail, ShieldCheck, Dumbbell, UserCheck, KeyRound, User } from 'lucide-react';
-import type { Trainee } from '../../types/nutrition';
-import { normalizePhone } from '../../utils/trainee';
+import { ApiError, UnauthorizedError } from '../../lib/api';
 
 interface LoginModalProps {
-  trainees: Trainee[];
-  onAdminLogin: () => void;
-  onTraineeLogin: (traineeId: string) => void;
+  /** Verifies credentials on the server; throws on failure. */
+  onLogin: (credential: string, password: string) => Promise<void>;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, onTraineeLogin }) => {
+function loginErrorMessage(err: unknown, tab: 'admin' | 'trainee'): string {
+  if (err instanceof UnauthorizedError) {
+    return tab === 'admin'
+      ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة للكابتن!'
+      : 'البيانات غير صحيحة. تأكد من البريد / رقم الهاتف وكلمة المرور، أو اطلبها من الكابتن.';
+  }
+  if (err instanceof ApiError) return `تعذر تسجيل الدخول: ${err.message}`;
+  return 'تعذر الاتصال بالسيرفر. تأكد من الإنترنت وحاول مرة أخرى.';
+}
+
+export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
   const [activeTab, setActiveTab] = useState<'admin' | 'trainee'>('admin');
 
-  // Admin Login State (Completely blank by default)
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-
-  // Trainee Login State (Completely blank by default)
   const [traineeCredential, setTraineeCredential] = useState('');
   const [traineePassword, setTraineePassword] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Handle Admin Login Submit (Strictly coachahmed123@limbyfit.com ONLY)
-  const handleAdminSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (credential: string, password: string) => {
     setLoading(true);
     setError('');
-
-    setTimeout(() => {
-      const cleanEmail = adminEmail.trim().toLowerCase();
-      if (cleanEmail === 'coachahmed123@limbyfit.com') {
-        if (adminPassword === 'limby2026' || adminPassword === '123456' || adminPassword.length >= 4) {
-          onAdminLogin();
-        } else {
-          setError('كلمة المرور غير صحيحة للكابتن!');
-        }
-      } else {
-        setError('البريد الإلكتروني غير صحيح! الحساب المسموح به للكابتن فقط: coachahmed123@limbyfit.com');
-      }
+    try {
+      await onLogin(credential.trim(), password);
+    } catch (err) {
+      setError(loginErrorMessage(err, activeTab));
       setLoading(false);
-    }, 400);
+    }
   };
 
-  // Handle Trainee Login Submit (Allows Trainees & Strict Coach Email)
+  const handleAdminSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void submit(adminEmail, adminPassword);
+  };
+
   const handleTraineeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    setTimeout(() => {
-      const cleanCred = traineeCredential.trim().toLowerCase();
-
-      // Strictly check if credentials belong to Coach Admin
-      if (cleanCred === 'coachahmed123@limbyfit.com') {
-        if (traineePassword === 'limby2026' || traineePassword === '123456' || traineePassword.length >= 4) {
-          onAdminLogin();
-        } else {
-          setError('كلمة المرور غير صحيحة للكابتن!');
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Check Trainees list for trainee login
-      // Phone must match fully (ignoring formatting / country-code prefix), not just contain the input.
-      const typedDigits = normalizePhone(cleanCred).replace(/^0+/, '');
-      const matchedTrainee = trainees.find(t => {
-        const matchesEmail = t.email?.toLowerCase() === cleanCred;
-        const matchesPhone = typedDigits.length >= 8 && !!t.phone && normalizePhone(t.phone).endsWith(typedDigits);
-        return matchesEmail || matchesPhone;
-      });
-
-      if (!matchedTrainee) {
-        setError('لم نجد مشترك بهذا البريد الإلكتروني أو رقم الهاتف. يرجى التأكد من البيانات.');
-        setLoading(false);
-        return;
-      }
-
-      // Check Password for Trainee
-      const validPassword = matchedTrainee.password || 'fit1234';
-      if (traineePassword === validPassword || traineePassword === '123456' || traineePassword === 'fit1234') {
-        onTraineeLogin(matchedTrainee.id);
-      } else {
-        setError(`كلمة المرور غير صحيحة للمشترك (${matchedTrainee.name}). اطلب الباسورد من الكابتن.`);
-      }
-
-      setLoading(false);
-    }, 400);
+    void submit(traineeCredential, traineePassword);
   };
 
   return (
@@ -154,7 +112,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
                   onChange={(e) => setAdminEmail(e.target.value)}
                   required
                   autoComplete="off"
-                  placeholder="example@gmail.com أو 01xxxxxxx"
+                  placeholder="coach@example.com"
                   className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-4 text-xs sm:text-sm outline-none transition-all duration-200"
                 />
               </div>

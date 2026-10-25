@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type { Trainee } from './types/nutrition';
 import type { AdminView } from './constants';
+import type { Session } from './lib/api';
 import { useAuth } from './hooks/useAuth';
 import { useAppData } from './hooks/useAppData';
 import { findPlanForTrainee } from './utils/plan';
@@ -28,17 +29,43 @@ type AppData = ReturnType<typeof useAppData>;
 
 export function App() {
   const auth = useAuth();
-  const data = useAppData();
+  if (!auth.session) return <LoginModal onLogin={auth.login} />;
+  // Keyed by token: a new login always starts with fresh state and a fresh sync connection.
+  return <SessionApp key={auth.session.token} session={auth.session} onLogout={auth.logout} />;
+}
 
-  if (auth.role === null) {
-    return <LoginModal trainees={data.trainees} onAdminLogin={auth.loginAdmin} onTraineeLogin={auth.loginTrainee} />;
+function SessionApp({ session, onLogout }: { session: Session; onLogout: () => void }) {
+  const data = useAppData(session, onLogout);
+
+  const handleLogout = useCallback(async () => {
+    const synced = await data.flushPending();
+    if (!synced && !window.confirm('فيه تعديلات لسه ما اترفعتش على السيرفر (مفيش اتصال). لو خرجت دلوقتي هتضيع. متأكد؟')) return;
+    onLogout();
+  }, [data.flushPending, onLogout]);
+
+  if (!data.isReady) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-2 border-[#9CFF00] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-gray-400">جاري تحميل البيانات...</p>
+      </div>
+    );
   }
 
-  if (auth.role === 'trainee') {
-    return <TraineeApp data={data} traineeId={auth.activeTraineeId} onLogout={auth.logout} />;
-  }
-
-  return <AdminApp data={data} onLogout={auth.logout} />;
+  return (
+    <>
+      {data.isOffline && (
+        <div className="no-print bg-amber-500/15 border-b border-amber-500/30 text-amber-300 text-[11px] text-center py-1.5 px-3">
+          مفيش اتصال بالسيرفر حالياً — التعديلات محفوظة على الجهاز وهتترفع أول ما الاتصال يرجع.
+        </div>
+      )}
+      {session.role === 'trainee' ? (
+        <TraineeApp data={data} traineeId={session.traineeId} onLogout={handleLogout} />
+      ) : (
+        <AdminApp data={data} onLogout={handleLogout} />
+      )}
+    </>
+  );
 }
 
 // ---------------------------------------------------------------------------
