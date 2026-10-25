@@ -5,7 +5,7 @@ to view the plan and log weight. React 18 + TypeScript + Vite + Tailwind.
 
 ## Setup (required before deploying)
 
-The API needs these environment variables. They are kept in the git-ignored `.env.local`
+The API needs environment variables. They are kept in the git-ignored `.env.local`
 (see `.env.example`), which `npm run dev` reads automatically. To copy them to Vercel:
 
 ```bash
@@ -13,13 +13,6 @@ npm run setup:vercel   # logs in to Vercel, links the project, adds the variable
 ```
 
 Then redeploy. Variables already set on Vercel are never overwritten.
-
-| Variable | Purpose |
-| --- | --- |
-| `AUTH_SECRET` | Long random string. Signs login tokens and encrypts stored data. **Never change it after going live.** |
-| `COACH_PASSWORD` | The coach (admin) password. |
-| `COACH_EMAIL` | Optional, defaults to `coachahmed123@limbyfit.com`. |
-| `SYNC_STORE_URL` | Optional restful-api.dev object URL. Locally, empty = temporary in-memory store. |
 
 ## Scripts
 
