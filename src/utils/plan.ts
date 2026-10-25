@@ -45,6 +45,10 @@ export const mealMacros = (m: Meal): MacroSums => ({
   fats: m.totalFats || 0
 });
 
+/** A day counts as filled once any meal has text or it has exercises. */
+export const isDayFilled = (day?: DaySchedule) =>
+  !!day && (day.meals.some(m => m.items.some(i => i.foodNameAr?.trim())) || (day.exercises?.length ?? 0) > 0);
+
 /** Index of today in WEEK_DAYS (the week starts on Saturday). */
 export const todayWeekIndex = (date = new Date()) => (date.getDay() + 1) % 7;
 

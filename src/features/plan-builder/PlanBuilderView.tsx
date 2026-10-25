@@ -5,7 +5,7 @@ import { GOAL_LABELS_AR, WEEK_DAYS } from '../../constants';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { PlanSettingsPanel } from './PlanSettingsPanel';
 import { ProgressPanel } from './ProgressPanel';
-import { createDefaultWeek, createFreeTextItem, getWeekSchedule, sumMacros } from '../../utils/plan';
+import { createDefaultWeek, createFreeTextItem, getWeekSchedule, isDayFilled, sumMacros } from '../../utils/plan';
 
 interface PlanBuilderViewProps {
   trainee: Trainee;
@@ -162,16 +162,24 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
           {WEEK_DAYS.map((d, idx) => {
             const isActive = activeDayIndex === idx;
+            const filled = isDayFilled(week[idx]);
             return (
               <button
                 key={d.en}
                 onClick={() => setActiveDayIndex(idx)}
-                className={`py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer ${
+                title={filled ? 'اليوم ده متصمم' : 'اليوم ده لسه فاضي'}
+                className={`relative py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all text-center cursor-pointer ${
                   isActive
                     ? 'bg-[#9CFF00] text-black font-black shadow-[0_0_15px_rgba(156,255,0,0.3)] scale-105'
                     : 'bg-[#0A0A0A] text-gray-400 hover:text-white border border-[#262626]'
                 }`}
               >
+                {filled && (
+                  <Check
+                    aria-label="متصمم"
+                    className={`absolute top-1 left-1 w-3 h-3 stroke-[3] ${isActive ? 'text-black' : 'text-[#9CFF00]'}`}
+                  />
+                )}
                 <span className="block">{d.ar}</span>
                 <span className={`text-[10px] block font-mono ${isActive ? 'text-black' : 'text-gray-500'}`}>{d.en}</span>
               </button>
