@@ -25,3 +25,7 @@ dist-ssr
 
 # Vercel CLI link
 .vercel
+
+# Local secrets (keep the documented template)
+.env*
+!.env.example

@@ -20,9 +20,12 @@ function fail(message) {
 }
 
 function vercel(args, options = {}) {
-  return spawnSync('npx', ['--yes', 'vercel@latest', ...args], {
+  // Windows needs a shell to run npx.cmd; pass one command string (all args here are fixed literals).
+  const isWindows = process.platform === 'win32';
+  const cmd = ['npx', '--yes', 'vercel@latest', ...args];
+  return spawnSync(isWindows ? cmd.join(' ') : cmd[0], isWindows ? [] : cmd.slice(1), {
     encoding: 'utf8',
-    shell: process.platform === 'win32',
+    shell: isWindows,
     // Captured calls must never wait for keyboard input.
     stdio: options.input === undefined ? ['ignore', 'pipe', 'pipe'] : 'pipe',
     ...options
