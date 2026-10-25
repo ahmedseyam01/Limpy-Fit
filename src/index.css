@@ -60,6 +60,13 @@
 }
 
 /* Print CSS for High-Definition PDF Generation (ZERO WHITE MARGINS) */
+/* Phone numbers, emails and similar values read left-to-right even inside the RTL layout. */
+input[type='email'],
+input[type='tel'] {
+  direction: ltr;
+  text-align: right;
+}
+
 @media print {
   @page {
     size: A4 portrait;

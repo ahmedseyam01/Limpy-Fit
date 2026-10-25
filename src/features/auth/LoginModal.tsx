@@ -174,6 +174,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
                 <User className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
+                  dir="ltr"
                   value={traineeCredential}
                   onChange={(e) => setTraineeCredential(e.target.value)}
                   required

@@ -434,7 +434,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="bg-[#161616] p-2.5 rounded-xl border border-[#262626]">
                 <span className="text-[10px] text-gray-400 block">احتياج السعرات</span>
-                <span className="text-lg font-black text-[#9CFF00]">{stats.targetCalories} kcal</span>
+                <span dir="ltr" className="text-lg font-black text-[#9CFF00] block">{stats.targetCalories} kcal</span>
                 <span className="text-[9px] text-gray-500 block">TDEE: {stats.tdee}</span>
               </div>
 

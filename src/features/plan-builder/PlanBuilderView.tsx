@@ -81,7 +81,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
       {/* Trainee Profile Banner */}
       <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] text-[#9CFF00] font-mono font-bold uppercase tracking-widest block">
+          <span dir="ltr" className="text-[10px] text-[#9CFF00] font-mono font-bold uppercase tracking-widest block text-right">
             7-DAY WEEKLY DIET PLANNER
           </span>
           <h1 className="text-2xl font-black text-white mt-0.5">{trainee.name}</h1>
@@ -292,6 +292,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
                     <label className="text-[10px] text-gray-400 block mb-0.5">التكرارات (Reps):</label>
                     <input
                       type="text"
+                      dir="ltr"
                       value={ex.reps}
                       onChange={e => handleUpdateExercise(exIdx, 'reps', e.target.value)}
                       placeholder="10-12"

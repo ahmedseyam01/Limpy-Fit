@@ -211,8 +211,8 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
             <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
               <div className="bg-[#0A0A0A] p-2.5 rounded-xl border border-[#222]">
                 <span className="text-[10px] text-gray-400 block font-mono">إجمالي السعرات</span>
-                <span className="text-base sm:text-lg font-black text-[#9CFF00]">{Math.round(dayCalories)} kcal</span>
-                <span className="text-[9px] text-gray-500 block">من {targetCal} kcal</span>
+                <span dir="ltr" className="text-base sm:text-lg font-black text-[#9CFF00] block">{Math.round(dayCalories)} kcal</span>
+                <span className="text-[9px] text-gray-500 block">من <bdi dir="ltr">{targetCal} kcal</bdi></span>
               </div>
 
               <div className="bg-[#0A0A0A] p-2.5 rounded-xl border border-[#222]">
@@ -366,7 +366,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                           🔥 <span className="text-[#9CFF00] font-bold">{ex.sets}</span> جولات
                         </span>
                         <span className="bg-[#141414] border border-[#222] px-2.5 py-1 rounded-lg">
-                          🎯 <span className="text-white font-bold">{ex.reps}</span> تكرارات
+                          🎯 <bdi dir="ltr" className="text-white font-bold">{ex.reps}</bdi> تكرارات
                         </span>
                         {!!ex.restSeconds && (
                           <span className="bg-[#141414] border border-[#222] px-2.5 py-1 rounded-lg">

@@ -81,7 +81,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="w-full bg-[#0A0A0A] border border-[#262626] p-4 rounded-2xl space-y-1">
             <span className="text-sm font-black text-white block">{name}</span>
             <span className="text-xs text-[#9CFF00] font-mono block">{title}</span>
-            <span className="text-[10px] text-gray-500 font-mono block">{whatsapp}</span>
+            <span dir="ltr" className="text-[10px] text-gray-500 font-mono block">{whatsapp}</span>
           </div>
         </div>
 

@@ -46,7 +46,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
             <h3 className="text-base font-bold text-white group-hover:text-[#9CFF00] transition-colors leading-tight">
               {t.name}
             </h3>
-            <span className="text-[11px] text-gray-400 font-mono block mt-0.5">{t.phone}</span>
+            <span dir="ltr" className="text-[11px] text-gray-400 font-mono block mt-0.5 text-right">{t.phone}</span>
           </div>
         </div>
 

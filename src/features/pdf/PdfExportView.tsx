@@ -347,7 +347,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                           <span className="font-bold text-white">{ex.nameAr}</span>
                         </div>
                         <div className="flex items-center gap-3 font-mono text-[11px] text-gray-300">
-                          <span>{ex.sets} جولات × {ex.reps}</span>
+                          <span>{ex.sets} جولات × <bdi dir="ltr">{ex.reps}</bdi></span>
                           {ex.restSeconds && <span className="text-gray-500">({ex.restSeconds}ث راحة)</span>}
                         </div>
                       </div>
