@@ -7,7 +7,7 @@
  */
 import type { CoachProfile, DietPlan, Trainee } from '../src/types/nutrition.js';
 
-export const DEFAULT_TRAINEE_PASSWORD = 'fit1234';
+export const DEFAULT_TRAINEE_PASSWORD = 'limby2026';
 
 export interface SyncData {
   trainees: Trainee[];

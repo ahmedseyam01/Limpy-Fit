@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Trainee, Goal, ActivityLevel, Gender } from '../../types/nutrition';
 import { computeTraineeNutritionStats } from '../../utils/calculator';
+import { DEFAULT_TRAINEE_PASSWORD } from '../../constants';
 import { normalizePhone, todayIso } from '../../utils/trainee';
 
 // Not editable in the form yet; kept on the record for future use.
@@ -126,7 +127,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
     name: name || 'متدرب جديد',
     phone,
     email: email || `${name.trim() || 'user'}@limbyfit.com`,
-    password: password || 'fit1234',
+    password: password || DEFAULT_TRAINEE_PASSWORD,
     age: Number(age),
     gender,
     height: Number(height),
@@ -319,7 +320,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
                       setPassword(e.target.value);
                       setIsManualPassword(true);
                     }}
-                    placeholder="fit1234"
+                    placeholder={DEFAULT_TRAINEE_PASSWORD}
                     className="w-full bg-[#141414] border border-[#262626] focus:border-[#9CFF00] text-white rounded-xl py-2 pr-3 pl-10 text-xs outline-none font-mono font-bold"
                   />
                   <button
