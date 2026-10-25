@@ -1,12 +1,13 @@
-import { UserPlus, ArrowRight, FileText, LogOut, ShieldCheck, RefreshCw } from 'lucide-react';
-import { CoachProfile } from '../types/nutrition';
+import type React from 'react';
+import { UserPlus, ArrowRight, FileText } from 'lucide-react';
+import type { CoachProfile } from '../../types/nutrition';
+import type { AdminView } from '../../constants';
 
 interface NavbarProps {
   coachProfile: CoachProfile;
-  currentView?: 'list' | 'plan' | 'pdf' | 'settings';
-  setCurrentView?: (view: 'list' | 'plan' | 'pdf' | 'settings') => void;
+  currentView?: AdminView;
+  setCurrentView?: (view: AdminView) => void;
   onOpenAddModal?: () => void;
-  onOpenSyncModal?: () => void;
   onLogout?: () => void;
   // Trainee View Props
   isTraineeView?: boolean;
@@ -19,7 +20,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentView = 'list',
   setCurrentView,
   onOpenAddModal,
-  onOpenSyncModal,
   onLogout,
   isTraineeView = false,
   traineeName,

@@ -2,9 +2,35 @@ import type { IncomingMessage, ServerResponse } from 'http';
 
 const STORE_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b110019ffca18b3114bd';
 
-let inMemoryCache: any = null;
+interface StoreData {
+  trainees: unknown[];
+  plans: unknown[];
+  deletedTraineeIds: string[];
+  coachProfile?: unknown;
+  lastUpdated: number;
+}
 
-async function getPersistentStore(): Promise<any> {
+type SyncRequest = IncomingMessage & { body?: any };
+
+let inMemoryCache: StoreData | null = null;
+
+function sendJson(res: ServerResponse, status: number, body: unknown) {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(body));
+}
+
+/** Uses the body already parsed by the platform when present, otherwise reads the raw stream. */
+async function readJsonBody(req: SyncRequest): Promise<any> {
+  if (req.body !== undefined) {
+    return typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body;
+  }
+  let raw = '';
+  for await (const chunk of req) raw += chunk;
+  return JSON.parse(raw || '{}');
+}
+
+async function getPersistentStore(): Promise<StoreData> {
   try {
     const res = await fetch(STORE_URL, { headers: { 'Accept': 'application/json' } });
     if (res.ok) {
@@ -20,7 +46,7 @@ async function getPersistentStore(): Promise<any> {
   return inMemoryCache || { trainees: [], plans: [], deletedTraineeIds: [], lastUpdated: 0 };
 }
 
-async function savePersistentStore(data: any): Promise<boolean> {
+async function savePersistentStore(data: StoreData): Promise<boolean> {
   inMemoryCache = data;
   try {
     const res = await fetch(STORE_URL, {
@@ -38,7 +64,7 @@ async function savePersistentStore(data: any): Promise<boolean> {
   }
 }
 
-export default async function handler(req: IncomingMessage & { body?: any }, res: ServerResponse) {
+export default async function handler(req: SyncRequest, res: ServerResponse) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -55,45 +81,29 @@ export default async function handler(req: IncomingMessage & { body?: any }, res
   }
 
   if (req.method === 'POST' || req.method === 'PUT') {
-    let bodyData = '';
-    req.on('data', chunk => {
-      bodyData += chunk;
-    });
+    try {
+      const parsed = await readJsonBody(req);
+      const payload = parsed?.data || parsed;
+      const currentStore = await getPersistentStore();
 
-    req.on('end', async () => {
-      try {
-        const parsed = JSON.parse(bodyData || '{}');
-        const payload = parsed.data || parsed;
-        const currentStore = await getPersistentStore();
-
-        if (payload && (payload.trainees !== undefined || payload.plans !== undefined || payload.lastUpdated)) {
-          const updatedStore = {
-            trainees: payload.trainees !== undefined ? payload.trainees : currentStore.trainees,
-            plans: payload.plans !== undefined ? payload.plans : currentStore.plans,
-            deletedTraineeIds: Array.from(new Set([...(currentStore.deletedTraineeIds || []), ...(payload.deletedTraineeIds || [])])),
-            coachProfile: payload.coachProfile || currentStore.coachProfile,
-            lastUpdated: payload.lastUpdated || Date.now()
-          };
-          await savePersistentStore(updatedStore);
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ success: true, data: updatedStore }));
-          return;
-        }
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ success: true, data: currentStore }));
-      } catch (err) {
-        res.statusCode = 400;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: 'Invalid JSON payload' }));
+      if (payload && (payload.trainees !== undefined || payload.plans !== undefined || payload.lastUpdated)) {
+        // Deletions are cumulative so a stale device can never resurrect a deleted trainee.
+        const deleted = new Set<string>([...(currentStore.deletedTraineeIds || []), ...(payload.deletedTraineeIds || [])]);
+        const updatedStore: StoreData = {
+          trainees: ((payload.trainees ?? currentStore.trainees) as { id: string }[]).filter(t => !deleted.has(t.id)),
+          plans: ((payload.plans ?? currentStore.plans) as { traineeId: string }[]).filter(p => !deleted.has(p.traineeId)),
+          deletedTraineeIds: [...deleted],
+          coachProfile: payload.coachProfile || currentStore.coachProfile,
+          lastUpdated: payload.lastUpdated || Date.now()
+        };
+        await savePersistentStore(updatedStore);
+        return sendJson(res, 200, { success: true, data: updatedStore });
       }
-    });
-    return;
+      return sendJson(res, 200, { success: true, data: currentStore });
+    } catch {
+      return sendJson(res, 400, { error: 'Invalid JSON payload' });
+    }
   }
 
-  const currentData = await getPersistentStore();
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ data: currentData }));
+  sendJson(res, 200, { data: await getPersistentStore() });
 }

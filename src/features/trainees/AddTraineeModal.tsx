@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Trainee, Goal, ActivityLevel, Gender } from '../types/nutrition';
-import { computeTraineeNutritionStats } from '../utils/calculator';
-import { X, UserPlus, Flame, Dumbbell, Sparkles, Activity, Copy, Check } from 'lucide-react';
+import type { Trainee, Goal, ActivityLevel, Gender } from '../../types/nutrition';
+import { computeTraineeNutritionStats } from '../../utils/calculator';
+import { todayIso } from '../../utils/trainee';
+
+// Not editable in the form yet; kept on the record for future use.
+const DEFAULT_TARGET_WEIGHT = 72;
+const DEFAULT_WORKOUT_DAYS = 5;
+import { X, UserPlus, Sparkles, Copy, Check } from 'lucide-react';
 
 interface AddTraineeModalProps {
   isOpen: boolean;
@@ -16,10 +21,8 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
   const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState<number | string>(175);
   const [weight, setWeight] = useState<number | string>(80);
-  const [targetWeight, setTargetWeight] = useState<number | string>(72);
   const [goal, setGoal] = useState<Goal>('fat_loss');
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>('heavy');
-  const [workoutDays, setWorkoutDays] = useState<number | string>(5);
   const [notes, setNotes] = useState('');
 
   const [email, setEmail] = useState('');
@@ -103,12 +106,12 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
     gender,
     height: Number(height),
     weight: Number(weight),
-    targetWeight: Number(targetWeight),
+    targetWeight: DEFAULT_TARGET_WEIGHT,
     goal,
     activityLevel,
-    workoutDays: Number(workoutDays),
+    workoutDays: DEFAULT_WORKOUT_DAYS,
     notes,
-    createdAt: new Date().toISOString().split('T')[0],
+    createdAt: todayIso(),
     progressLogs: []
   };
 
@@ -129,7 +132,7 @@ export const AddTraineeModal: React.FC<AddTraineeModalProps> = ({ isOpen, onClos
       progressLogs: [
         {
           id: `p-${Date.now()}`,
-          date: new Date().toISOString().split('T')[0],
+          date: todayIso(),
           weight: Number(weight)
         }
       ]

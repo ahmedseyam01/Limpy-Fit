@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
-import { Trainee, DietPlan, CoachProfile } from '../types/nutrition';
-import { LimbyLogo } from './LimbyLogo';
+import type React from 'react';
+import type { Trainee, DietPlan, CoachProfile } from '../../types/nutrition';
+import { getWeekSchedule } from '../../utils/plan';
+import { LimbyLogo } from '../../components/layout/LimbyLogo';
 import { 
   Printer, 
   Download, 
@@ -24,7 +25,6 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
   coachProfile,
   onBack
 }) => {
-  const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
     window.print();
@@ -41,15 +41,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
     }
   };
 
-  const daysList = plan.days && plan.days.length === 7 ? plan.days : [
-    { dayIndex: 0, dayNameAr: 'السبت', dayNameEn: 'Saturday', meals: plan.meals },
-    { dayIndex: 1, dayNameAr: 'الأحد', dayNameEn: 'Sunday', meals: plan.meals },
-    { dayIndex: 2, dayNameAr: 'الإثنين', dayNameEn: 'Monday', meals: plan.meals },
-    { dayIndex: 3, dayNameAr: 'الثلاثاء', dayNameEn: 'Tuesday', meals: plan.meals },
-    { dayIndex: 4, dayNameAr: 'الأربعاء', dayNameEn: 'Wednesday', meals: plan.meals },
-    { dayIndex: 5, dayNameAr: 'الخميس', dayNameEn: 'Thursday', meals: plan.meals },
-    { dayIndex: 6, dayNameAr: 'الجمعة', dayNameEn: 'Friday', meals: plan.meals }
-  ];
+  const daysList = getWeekSchedule(plan);
 
   // Dynamic Macro Totals Calculation
   let displayCalories = 0;
@@ -115,7 +107,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
       </div>
 
       {/* PRINTABLE DOCUMENT CONTAINER */}
-      <div ref={printRef} className="print-page bg-[#0A0A0A] text-white max-w-4xl mx-auto space-y-8">
+      <div className="print-page bg-[#0A0A0A] text-white max-w-4xl mx-auto space-y-8">
         
         {/* ==================== PAGE 1: LUXURY COVER PAGE (مع مسافة علوية كبيرة واسعة) ==================== */}
         <div className="pdf-page-break border border-[#242424] rounded-3xl p-6 sm:p-8 pt-12 sm:pt-16 mt-6 bg-gradient-to-b from-[#141414] via-[#0D0D0D] to-[#0A0A0A] relative overflow-hidden space-y-6">

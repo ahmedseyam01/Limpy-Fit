@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { CoachProfile } from '../types/nutrition';
-import { Settings, ShieldCheck, Sparkles, Phone, Instagram, Check, Save, Cloud } from 'lucide-react';
-import { LimbyLogo } from './LimbyLogo';
-import { getStoredFirebaseConfig, saveFirebaseConfig, removeFirebaseConfig, isFirebaseConnected } from '../lib/firebase';
+import type { CoachProfile } from '../../types/nutrition';
+import { Settings, ShieldCheck, Check, Save, Cloud } from 'lucide-react';
+import { LimbyLogo } from '../../components/layout/LimbyLogo';
+import { getStoredFirebaseConfig, saveFirebaseConfig, removeFirebaseConfig, isFirebaseConnected } from '../../lib/firebase';
 
 interface SettingsViewProps {
   coachProfile: CoachProfile;
@@ -212,7 +212,7 @@ const CloudSyncConfigPanel: React.FC = () => {
       alert('يرجى إدخال API Key و Project ID على الأقل للربط السحابي');
       return;
     }
-    const success = saveFirebaseConfig(config);
+    saveFirebaseConfig(config);
     setConnected(isFirebaseConnected());
     setSyncSaved(true);
     setTimeout(() => setSyncSaved(false), 3000);

@@ -1,15 +1,8 @@
 /// <reference types="vite/client" />
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { 
-  getFirestore, 
-  collection, 
-  doc, 
-  setDoc, 
-  deleteDoc, 
-  onSnapshot, 
-  Firestore 
-} from 'firebase/firestore';
-import { Trainee, DietPlan, CoachProfile } from '../types/nutrition';
+import type { Firestore } from 'firebase/firestore';
+import type { Trainee, DietPlan, CoachProfile } from '../types/nutrition';
+import { STORAGE_KEYS } from '../constants';
+import { readJson, removeKey, writeJson } from './storage';
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -20,197 +13,159 @@ export interface FirebaseConfig {
   appId?: string;
 }
 
-const LOCAL_STORAGE_FIREBASE_KEY = 'limby_firebase_config';
+type FirestoreModule = typeof import('firebase/firestore');
+interface FirestoreContext {
+  db: Firestore;
+  fs: FirestoreModule;
+}
 
-/**
- * Retrieves the stored or environment Firebase configuration
- */
+/** Retrieves the Firebase configuration from Vite env vars, falling back to the one saved in Settings. */
 export function getStoredFirebaseConfig(): FirebaseConfig | null {
-  // Check Vite environment variables first
   const envConfig: FirebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
   };
+  if (envConfig.apiKey && envConfig.projectId) return envConfig;
 
-  if (envConfig.apiKey && envConfig.projectId) {
-    return envConfig;
-  }
+  const saved = readJson<FirebaseConfig | null>(STORAGE_KEYS.firebaseConfig, null);
+  return saved?.apiKey && saved.projectId ? saved : null;
+}
 
-  // Fallback to localStorage saved config
-  const saved = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
-  if (saved) {
+let contextPromise: Promise<FirestoreContext | null> | null = null;
+
+/**
+ * Lazily loads the Firebase SDK only when a config exists, so the (large) SDK
+ * is never downloaded by users who don't use Firebase sync.
+ */
+function getFirestoreContext(): Promise<FirestoreContext | null> {
+  if (contextPromise) return contextPromise;
+  const config = getStoredFirebaseConfig();
+  if (!config) return Promise.resolve(null);
+
+  contextPromise = (async () => {
     try {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.apiKey && parsed.projectId) {
-        return parsed;
-      }
-    } catch {
-      // Ignore invalid JSON
+      const [{ initializeApp, getApps }, fs] = await Promise.all([
+        import('firebase/app'),
+        import('firebase/firestore')
+      ]);
+      const app = getApps()[0] ?? initializeApp(config);
+      return { db: fs.getFirestore(app), fs };
+    } catch (err) {
+      console.warn('Failed to initialize Firebase:', err);
+      contextPromise = null;
+      return null;
     }
-  }
-
-  return null;
+  })();
+  return contextPromise;
 }
 
 export function saveFirebaseConfig(config: FirebaseConfig): boolean {
   if (!config.apiKey || !config.projectId) return false;
-  localStorage.setItem(LOCAL_STORAGE_FIREBASE_KEY, JSON.stringify(config));
-  initFirebase();
+  writeJson(STORAGE_KEYS.firebaseConfig, config);
+  contextPromise = null;
+  void getFirestoreContext();
   return true;
 }
 
 export function removeFirebaseConfig(): void {
-  localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
-  dbInstance = null;
-  appInstance = null;
-}
-
-let appInstance: FirebaseApp | null = null;
-let dbInstance: Firestore | null = null;
-
-export function initFirebase(): Firestore | null {
-  const config = getStoredFirebaseConfig();
-  if (!config || !config.apiKey || !config.projectId) {
-    dbInstance = null;
-    return null;
-  }
-
-  try {
-    if (!getApps().length) {
-      appInstance = initializeApp(config);
-    } else {
-      appInstance = getApps()[0];
-    }
-    dbInstance = getFirestore(appInstance);
-    return dbInstance;
-  } catch (err) {
-    console.warn('Failed to initialize Firebase:', err);
-    dbInstance = null;
-    return null;
-  }
-}
-
-export function getDb(): Firestore | null {
-  if (!dbInstance) {
-    return initFirebase();
-  }
-  return dbInstance;
+  removeKey(STORAGE_KEYS.firebaseConfig);
+  contextPromise = null;
 }
 
 export function isFirebaseConnected(): boolean {
-  return !!getDb();
+  return getStoredFirebaseConfig() !== null;
 }
 
 // ----------------------------------------------------
 // Real-time Cloud Data Sync Handlers
 // ----------------------------------------------------
 
-/** Subscribe to Trainees collection in Firestore */
+/** Subscribes once the SDK is ready; the returned function also cancels a pending subscription. */
+function subscribe(
+  start: (ctx: FirestoreContext) => () => void
+): () => void {
+  let cancelled = false;
+  let unsubscribe: (() => void) | null = null;
+  void getFirestoreContext().then(ctx => {
+    if (ctx && !cancelled) unsubscribe = start(ctx);
+  });
+  return () => {
+    cancelled = true;
+    unsubscribe?.();
+  };
+}
+
+async function withDb(label: string, run: (ctx: FirestoreContext) => Promise<void>): Promise<void> {
+  const ctx = await getFirestoreContext();
+  if (!ctx) return;
+  try {
+    await run(ctx);
+  } catch (err) {
+    console.warn(`Cloud ${label} error:`, err);
+  }
+}
+
 export function subscribeToCloudTrainees(onData: (trainees: Trainee[]) => void): () => void {
-  const db = getDb();
-  if (!db) return () => {};
-
-  const colRef = collection(db, 'trainees');
-  return onSnapshot(colRef, (snapshot) => {
-    const traineesList: Trainee[] = [];
-    snapshot.forEach((docSnap) => {
-      traineesList.push(docSnap.data() as Trainee);
-    });
-    // Sort by creation date newest first
-    traineesList.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-    onData(traineesList);
-  }, (err) => {
-    console.warn('Error subscribing to Cloud Trainees:', err);
-  });
+  return subscribe(({ db, fs }) =>
+    fs.onSnapshot(
+      fs.collection(db, 'trainees'),
+      snapshot => {
+        const list = snapshot.docs.map(d => d.data() as Trainee);
+        // Newest first
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        onData(list);
+      },
+      err => console.warn('Error subscribing to Cloud Trainees:', err)
+    )
+  );
 }
 
-/** Sync individual Trainee to Firestore */
-export async function syncTraineeToCloud(trainee: Trainee): Promise<void> {
-  const db = getDb();
-  if (!db || !trainee.id) return;
-  try {
-    await setDoc(doc(db, 'trainees', trainee.id), trainee, { merge: true });
-  } catch (err) {
-    console.warn('Cloud sync trainee error:', err);
-  }
-}
-
-/** Delete Trainee from Firestore */
-export async function deleteTraineeFromCloud(traineeId: string): Promise<void> {
-  const db = getDb();
-  if (!db || !traineeId) return;
-  try {
-    await deleteDoc(doc(db, 'trainees', traineeId));
-  } catch (err) {
-    console.warn('Cloud delete trainee error:', err);
-  }
-}
-
-/** Subscribe to Diet Plans collection in Firestore */
 export function subscribeToCloudDietPlans(onData: (plans: DietPlan[]) => void): () => void {
-  const db = getDb();
-  if (!db) return () => {};
-
-  const colRef = collection(db, 'plans');
-  return onSnapshot(colRef, (snapshot) => {
-    const plansList: DietPlan[] = [];
-    snapshot.forEach((docSnap) => {
-      plansList.push(docSnap.data() as DietPlan);
-    });
-    onData(plansList);
-  }, (err) => {
-    console.warn('Error subscribing to Cloud Plans:', err);
-  });
+  return subscribe(({ db, fs }) =>
+    fs.onSnapshot(
+      fs.collection(db, 'plans'),
+      snapshot => onData(snapshot.docs.map(d => d.data() as DietPlan)),
+      err => console.warn('Error subscribing to Cloud Plans:', err)
+    )
+  );
 }
 
-/** Sync individual Diet Plan to Firestore */
-export async function syncPlanToCloud(plan: DietPlan): Promise<void> {
-  const db = getDb();
-  if (!db || !plan.traineeId) return;
-  try {
-    await setDoc(doc(db, 'plans', plan.traineeId), plan, { merge: true });
-  } catch (err) {
-    console.warn('Cloud sync plan error:', err);
-  }
-}
-
-/** Delete Diet Plan from Firestore */
-export async function deletePlanFromCloud(traineeId: string): Promise<void> {
-  const db = getDb();
-  if (!db || !traineeId) return;
-  try {
-    await deleteDoc(doc(db, 'plans', traineeId));
-  } catch (err) {
-    console.warn('Cloud delete plan error:', err);
-  }
-}
-
-/** Subscribe to Coach Profile document in Firestore */
 export function subscribeToCloudCoachProfile(onData: (profile: CoachProfile) => void): () => void {
-  const db = getDb();
-  if (!db) return () => {};
-
-  const docRef = doc(db, 'settings', 'coachProfile');
-  return onSnapshot(docRef, (docSnap) => {
-    if (docSnap.exists()) {
-      onData(docSnap.data() as CoachProfile);
-    }
-  }, (err) => {
-    console.warn('Error subscribing to Cloud Coach Profile:', err);
-  });
+  return subscribe(({ db, fs }) =>
+    fs.onSnapshot(
+      fs.doc(db, 'settings', 'coachProfile'),
+      docSnap => {
+        if (docSnap.exists()) onData(docSnap.data() as CoachProfile);
+      },
+      err => console.warn('Error subscribing to Cloud Coach Profile:', err)
+    )
+  );
 }
 
-/** Sync Coach Profile to Firestore */
-export async function syncCoachProfileToCloud(profile: CoachProfile): Promise<void> {
-  const db = getDb();
-  if (!db) return;
-  try {
-    await setDoc(doc(db, 'settings', 'coachProfile'), profile, { merge: true });
-  } catch (err) {
-    console.warn('Cloud sync profile error:', err);
-  }
+export function syncTraineeToCloud(trainee: Trainee): Promise<void> {
+  if (!trainee.id) return Promise.resolve();
+  return withDb('sync trainee', ({ db, fs }) => fs.setDoc(fs.doc(db, 'trainees', trainee.id), trainee, { merge: true }));
+}
+
+export function deleteTraineeFromCloud(traineeId: string): Promise<void> {
+  if (!traineeId) return Promise.resolve();
+  return withDb('delete trainee', ({ db, fs }) => fs.deleteDoc(fs.doc(db, 'trainees', traineeId)));
+}
+
+export function syncPlanToCloud(plan: DietPlan): Promise<void> {
+  if (!plan.traineeId) return Promise.resolve();
+  return withDb('sync plan', ({ db, fs }) => fs.setDoc(fs.doc(db, 'plans', plan.traineeId), plan, { merge: true }));
+}
+
+export function deletePlanFromCloud(traineeId: string): Promise<void> {
+  if (!traineeId) return Promise.resolve();
+  return withDb('delete plan', ({ db, fs }) => fs.deleteDoc(fs.doc(db, 'plans', traineeId)));
+}
+
+export function syncCoachProfileToCloud(profile: CoachProfile): Promise<void> {
+  return withDb('sync profile', ({ db, fs }) => fs.setDoc(fs.doc(db, 'settings', 'coachProfile'), profile, { merge: true }));
 }

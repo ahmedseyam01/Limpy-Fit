@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { LimbyLogo } from './LimbyLogo';
+import { LimbyLogo } from '../../components/layout/LimbyLogo';
 import { Lock, Mail, ShieldCheck, Dumbbell, UserCheck, KeyRound, User } from 'lucide-react';
-import { Trainee } from '../types/nutrition';
+import type { Trainee } from '../../types/nutrition';
+import { normalizePhone } from '../../utils/trainee';
 
 interface LoginModalProps {
   trainees: Trainee[];
@@ -65,9 +66,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ trainees, onAdminLogin, 
       }
 
       // Check Trainees list for trainee login
+      // Phone must match fully (ignoring formatting / country-code prefix), not just contain the input.
+      const typedDigits = normalizePhone(cleanCred).replace(/^0+/, '');
       const matchedTrainee = trainees.find(t => {
-        const matchesEmail = t.email && t.email.toLowerCase() === cleanCred;
-        const matchesPhone = t.phone && t.phone.replace(/\s+/g, '').includes(cleanCred.replace(/\s+/g, ''));
+        const matchesEmail = t.email?.toLowerCase() === cleanCred;
+        const matchesPhone = typedDigits.length >= 8 && !!t.phone && normalizePhone(t.phone).endsWith(typedDigits);
         return matchesEmail || matchesPhone;
       });
 

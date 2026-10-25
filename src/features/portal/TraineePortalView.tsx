@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { Trainee, DietPlan, CoachProfile, DaySchedule, ProgressLog } from '../types/nutrition';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
+import type { Trainee, DietPlan, CoachProfile, ProgressLog } from '../../types/nutrition';
+import { GOAL_LABELS_AR } from '../../constants';
+import { createDefaultPlan, getWeekSchedule, sumMacros } from '../../utils/plan';
+import { todayIso } from '../../utils/trainee';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
 import { 
   Dumbbell, 
   Droplet, 
@@ -37,38 +40,15 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
   const [activeTab, setActiveTab] = useState<'plan' | 'progress' | 'notes'>('plan');
   
   // New Progress Log Input
-  const [newWeight, setNewWeight] = useState<number>(trainee.weight);
+  const [newWeight, setNewWeight] = useState<number | ''>(trainee.weight);
   const [showLogModal, setShowLogModal] = useState(false);
 
-  // Days list
-  const daysNames = [
-    { ar: 'السبت', en: 'Saturday' },
-    { ar: 'الأحد', en: 'Sunday' },
-    { ar: 'الإثنين', en: 'Monday' },
-    { ar: 'الثلاثاء', en: 'Tuesday' },
-    { ar: 'الأربعاء', en: 'Wednesday' },
-    { ar: 'الخميس', en: 'Thursday' },
-    { ar: 'الجمعة', en: 'Friday' }
-  ];
-
-  // Fallback 7-day schedule if plan doesn't have days array
-  const daysSchedule: DaySchedule[] = (dietPlan && dietPlan.days && dietPlan.days.length === 7) 
-    ? dietPlan.days 
-    : daysNames.map((d, idx) => ({
-        dayIndex: idx,
-        dayNameAr: d.ar,
-        dayNameEn: d.en,
-        meals: dietPlan?.meals || []
-      }));
-
+  const daysSchedule = getWeekSchedule(dietPlan ?? createDefaultPlan(trainee.id, trainee.name));
   const currentDay = daysSchedule[activeDayIndex] || daysSchedule[0];
   const currentMeals = currentDay.meals;
 
-  // Calculate total macros for current active day
-  const dayCalories = currentMeals.reduce((acc, m) => acc + (m.totalCalories || 0), 0);
-  const dayProtein = currentMeals.reduce((acc, m) => acc + (m.totalProtein || 0), 0);
-  const dayCarbs = currentMeals.reduce((acc, m) => acc + (m.totalCarbs || 0), 0);
-  const dayFats = currentMeals.reduce((acc, m) => acc + (m.totalFats || 0), 0);
+  // Total macros for the selected day
+  const { calories: dayCalories, protein: dayProtein, carbs: dayCarbs, fats: dayFats } = sumMacros(currentMeals);
 
   const targetCal = dietPlan?.targetMacros.calories || 2000;
   const targetProt = dietPlan?.targetMacros.proteinGrams || 150;
@@ -80,7 +60,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
 
     const newLog: ProgressLog = {
       id: `p-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
+      date: todayIso(),
       weight: Number(newWeight)
     };
 
@@ -124,7 +104,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                 {dietPlan?.planName || `نظام ${trainee.name} الأسبوعي`}
               </h2>
               <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                الوزن الحالي: <span className="text-[#9CFF00] font-bold">{trainee.weight} كجم</span> | الهدف: {trainee.notes || 'تنشيف وحرق دهون'}
+                الوزن الحالي: <span className="text-[#9CFF00] font-bold">{trainee.weight} كجم</span> | الهدف: {GOAL_LABELS_AR[trainee.goal] ?? GOAL_LABELS_AR.fat_loss}
               </p>
             </div>
 
@@ -399,7 +379,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                         <span className="bg-[#141414] border border-[#222] px-2.5 py-1 rounded-lg">
                           🎯 <span className="text-white font-bold">{ex.reps}</span> تكرارات
                         </span>
-                        {ex.restSeconds && (
+                        {!!ex.restSeconds && (
                           <span className="bg-[#141414] border border-[#222] px-2.5 py-1 rounded-lg">
                             ⏱️ <span className="text-gray-400 font-bold">{ex.restSeconds}ث</span> راحة
                           </span>
@@ -527,7 +507,8 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
             {dietPlan?.coachNotes && (
               <div className="bg-[#141414] border border-[#9CFF00]/30 rounded-3xl p-6 space-y-2">
                 <span className="text-xs font-bold text-[#9CFF00] block">📝 ملاحظات خاصة بـ {trainee.name}:</span>
-                <p className="text-xs text-gray-300 leading-relaxed bg-[#0D0D0D] p-3 rounded-2xl border border-[#222]">
+                <p className="text-xs text-gray-300 leading-relaxed bg-[#0D0D0D] p-3 rounded-2xl border border-[#222] whitespace-pre-line">
+                  {dietPlan.coachNotes}
                 </p>
               </div>
             )}
@@ -549,9 +530,9 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                   type="number"
                   step="0.1"
                   required
-                  value={newWeight === 0 || !newWeight ? '' : newWeight}
+                  value={newWeight || ''}
                   onFocus={(e) => e.target.select()}
-                  onChange={(e) => setNewWeight(e.target.value === '' ? ('' as any) : Number(e.target.value))}
+                  onChange={(e) => setNewWeight(e.target.value === '' ? '' : Number(e.target.value))}
                   className="w-full bg-[#0A0A0A] border border-[#262626] focus:border-[#9CFF00] text-[#9CFF00] rounded-xl py-3 text-center text-lg font-black outline-none font-mono"
                 />
               </div>
