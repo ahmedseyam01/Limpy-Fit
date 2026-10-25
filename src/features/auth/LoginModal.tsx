@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LimbyLogo } from '../../components/layout/LimbyLogo';
-import { Lock, Mail, ShieldCheck, Dumbbell, UserCheck, KeyRound, User } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, Dumbbell, UserCheck, KeyRound, User, Eye, EyeOff } from 'lucide-react';
 import { ApiError, UnauthorizedError } from '../../lib/api';
 
 interface LoginModalProps {
@@ -26,6 +26,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
   const [traineeCredential, setTraineeCredential] = useState('');
   const [traineePassword, setTraineePassword] = useState('');
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -95,7 +96,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
 
         {/* TAB 1: ADMIN LOGIN FORM */}
         {activeTab === 'admin' && (
-          <form onSubmit={handleAdminSubmit} autoComplete="off" className="space-y-3 sm:space-y-4">
+          <form onSubmit={handleAdminSubmit} className="space-y-3 sm:space-y-4">
             <div className="bg-[#9CFF00]/10 border border-[#9CFF00]/30 p-2 sm:p-2.5 rounded-xl text-center text-[11px] sm:text-xs text-[#9CFF00] font-bold">
               لوحة تحكم الكابتن لإعداد ومتابعة الأنظمة الغذائية 🦾
             </div>
@@ -109,9 +110,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
                 <input
                   type="email"
                   value={adminEmail}
+                  name="username"
                   onChange={(e) => setAdminEmail(e.target.value)}
                   required
-                  autoComplete="off"
+                  autoComplete="username"
                   placeholder="coach@example.com"
                   className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-4 text-xs sm:text-sm outline-none transition-all duration-200"
                 />
@@ -125,14 +127,22 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
               <div className="relative">
                 <Lock className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   required
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-4 text-xs sm:text-sm outline-none transition-all duration-200"
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-11 text-xs sm:text-sm outline-none transition-all duration-200"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -161,7 +171,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
 
         {/* TAB 2: TRAINEE LOGIN FORM */}
         {activeTab === 'trainee' && (
-          <form onSubmit={handleTraineeSubmit} autoComplete="off" className="space-y-3 sm:space-y-4">
+          <form onSubmit={handleTraineeSubmit} className="space-y-3 sm:space-y-4">
             <div className="bg-[#9CFF00]/10 border border-[#9CFF00]/30 p-2 sm:p-2.5 rounded-xl text-center text-[11px] sm:text-xs text-[#9CFF00] font-bold">
               بوابة المتدرب الخاصة لمتابعة جدول التغذية والوزن 🥗
             </div>
@@ -178,7 +188,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
                   value={traineeCredential}
                   onChange={(e) => setTraineeCredential(e.target.value)}
                   required
-                  autoComplete="off"
+                  autoComplete="username"
                   placeholder="رقم الهاتف أو الإيميل المسجل..."
                   className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-4 text-xs sm:text-sm outline-none transition-all duration-200"
                 />
@@ -192,14 +202,22 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
               <div className="relative">
                 <KeyRound className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={traineePassword}
                   onChange={(e) => setTraineePassword(e.target.value)}
                   required
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-4 text-xs sm:text-sm outline-none transition-all duration-200"
+                  className="w-full bg-[#0A0A0A] border border-[#2A2A2A] focus:border-[#9CFF00] text-white rounded-xl py-2.5 sm:py-3 pr-10 pl-11 text-xs sm:text-sm outline-none transition-all duration-200"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
