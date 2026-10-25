@@ -3,6 +3,7 @@ import type { Trainee, DietPlan, CoachProfile, ProgressLog } from '../../types/n
 import { GOAL_LABELS_AR } from '../../constants';
 import { createDefaultPlan, getWeekSchedule, todayWeekIndex, hasMacros, isFreeTextItem, mealMacros, sumMacros } from '../../utils/plan';
 import { todayIso } from '../../utils/trainee';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
 import { 
@@ -16,7 +17,8 @@ import {
   Clock,
   ArrowRightLeft,
   Apple,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
 
 interface TraineePortalViewProps {
@@ -43,6 +45,8 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
   // New Progress Log Input
   const [newWeight, setNewWeight] = useState<number | ''>(trainee.weight);
   const [showLogModal, setShowLogModal] = useState(false);
+  const [newDate, setNewDate] = useState(todayIso);
+  const [logToDelete, setLogToDelete] = useState<ProgressLog | null>(null);
 
   const daysSchedule = getWeekSchedule(dietPlan ?? createDefaultPlan(trainee.id, trainee.name));
   const currentDay = daysSchedule[activeDayIndex] || daysSchedule[0];
@@ -54,26 +58,28 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
   const targetCal = dietPlan?.targetMacros.calories || 2000;
   const targetProt = dietPlan?.targetMacros.proteinGrams || 150;
 
-  // Handle adding progress log
+  /** Saves logs newest first; the trainee's current weight is the most recent entry. */
+  const saveLogs = (logs: ProgressLog[]) => {
+    const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    onUpdateTraineeProgress({ ...trainee, weight: sorted[0]?.weight ?? trainee.weight, progressLogs: sorted });
+  };
+
+  const openLogModal = () => {
+    setNewWeight(trainee.weight);
+    setNewDate(todayIso());
+    setShowLogModal(true);
+  };
+
   const handleAddProgressLog = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWeight) return;
-
-    const newLog: ProgressLog = {
-      id: `p-${Date.now()}`,
-      date: todayIso(),
-      weight: Number(newWeight)
-    };
-
-    const updatedLogs = [newLog, ...(trainee.progressLogs || [])];
-    const updatedTrainee: Trainee = {
-      ...trainee,
-      weight: Number(newWeight),
-      progressLogs: updatedLogs
-    };
-
-    onUpdateTraineeProgress(updatedTrainee);
+    saveLogs([{ id: `p-${Date.now()}`, date: newDate || todayIso(), weight: Number(newWeight) }, ...(trainee.progressLogs || [])]);
     setShowLogModal(false);
+  };
+
+  const handleDeleteLog = () => {
+    if (logToDelete) saveLogs((trainee.progressLogs || []).filter(l => l.id !== logToDelete.id));
+    setLogToDelete(null);
   };
 
   return (
@@ -405,7 +411,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                 </div>
 
                 <button
-                  onClick={() => setShowLogModal(true)}
+                  onClick={openLogModal}
                   className="bg-[#9CFF00] hover:bg-[#8BE600] text-black font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(156,255,0,0.3)] transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -435,8 +441,17 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                         </div>
                       </div>
 
-                      <div className="text-right">
+                      <div className="flex items-center gap-2">
                         <span className="text-base font-black text-[#9CFF00] font-mono">{log.weight} كجم</span>
+                        <button
+                          type="button"
+                          onClick={() => setLogToDelete(log)}
+                          aria-label="حذف القياس"
+                          title="حذف القياس"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   ))
@@ -506,12 +521,22 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
         )}
       </main>
 
+      {logToDelete && (
+        <ConfirmDialog
+          title="حذف القياس؟"
+          message={`قياس يوم ${logToDelete.date} (${logToDelete.weight} كجم) هيتمسح.`}
+          confirmLabel="حذف"
+          onCancel={() => setLogToDelete(null)}
+          onConfirm={handleDeleteLog}
+        />
+      )}
+
       {/* MODAL FOR LOGGING NEW WEIGHT */}
       {showLogModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
             <h3 className="text-base font-black text-white">تسجيل الوزن الأسبوعي الجديد</h3>
-            <p className="text-xs text-gray-400">أدخل وزنك صباح اليوم على معدة فارغة بالكيلوجرام.</p>
+            <p className="text-xs text-gray-400">أدخل وزنك الصبح على معدة فاضية بالكيلوجرام.</p>
 
             <form onSubmit={handleAddProgressLog} className="space-y-4">
               <div>
@@ -524,6 +549,19 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => setNewWeight(e.target.value === '' ? '' : Number(e.target.value))}
                   className="w-full bg-[#0A0A0A] border border-[#262626] focus:border-[#9CFF00] text-[#9CFF00] rounded-xl py-3 text-center text-lg font-black outline-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-300 mb-1.5">تاريخ القياس</label>
+                <input
+                  type="date"
+                  dir="ltr"
+                  required
+                  max={todayIso()}
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  className="w-full bg-[#0A0A0A] border border-[#262626] focus:border-[#9CFF00] text-white rounded-xl py-2.5 px-3 text-center text-sm outline-none [color-scheme:dark]"
                 />
               </div>
 
