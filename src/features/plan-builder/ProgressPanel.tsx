@@ -51,7 +51,7 @@ export function ProgressPanel({ trainee }: { trainee: Trainee }) {
             <span className="text-xs text-gray-300">
               {formatKg(last.weight)} كجم
               {logs.length > 1 && (
-                <span className={`mr-1.5 font-bold ${goodDirection === false ? 'text-amber-400' : 'text-[#9CFF00]'}`}>
+                <span className={`ms-1.5 font-bold ${goodDirection === false ? 'text-amber-400' : 'text-[#9CFF00]'}`}>
                   (<bdi dir="ltr">{change > 0 ? '+' : ''}{formatKg(change)}</bdi> كجم)
                 </span>
               )}
