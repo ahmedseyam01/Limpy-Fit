@@ -1,36 +1,49 @@
-import type { DaySchedule, DietPlan, Meal, Trainee } from '../types/nutrition';
+import type { DaySchedule, DietPlan, FoodPortion, Meal, Trainee } from '../types/nutrition';
 import { WEEK_DAYS } from '../constants';
 import { todayIso } from './trainee';
 
-type MealTemplate = Pick<Meal, 'type' | 'titleAr' | 'titleEn'> & {
-  grams: number;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-};
+type MealTemplate = Pick<Meal, 'type' | 'titleAr' | 'titleEn'>;
 
-// Standard 5-meal day used for every new plan (food names start blank for the coach to fill).
+// Standard 5-meal day used for every new plan. Food and macros start empty: the coach fills in real values.
 const MEAL_TEMPLATES: MealTemplate[] = [
-  { type: 'breakfast', titleAr: '1. وجبة الإفطار', titleEn: 'Breakfast', grams: 150, calories: 360, protein: 32, carbs: 40, fats: 8 },
-  { type: 'snack_1', titleAr: '2. وجبة سناك صباحي', titleEn: 'Morning Snack', grams: 120, calories: 246, protein: 7, carbs: 32, fats: 10 },
-  { type: 'lunch', titleAr: '3. وجبة الغداء الرئيسية', titleEn: 'Lunch', grams: 380, calories: 503, protein: 54, carbs: 56, fats: 7 },
-  { type: 'post_workout', titleAr: '4. وجبة قبل/بعد التمرين', titleEn: 'Workout Snack', grams: 130, calories: 238, protein: 30, carbs: 25, fats: 2 },
-  { type: 'dinner', titleAr: '5. وجبة العشاء', titleEn: 'Dinner', grams: 210, calories: 270, protein: 28, carbs: 8, fats: 14 }
+  { type: 'breakfast', titleAr: '1. وجبة الإفطار', titleEn: 'Breakfast' },
+  { type: 'snack_1', titleAr: '2. وجبة سناك صباحي', titleEn: 'Morning Snack' },
+  { type: 'lunch', titleAr: '3. وجبة الغداء الرئيسية', titleEn: 'Lunch' },
+  { type: 'post_workout', titleAr: '4. وجبة قبل/بعد التمرين', titleEn: 'Workout Snack' },
+  { type: 'dinner', titleAr: '5. وجبة العشاء', titleEn: 'Dinner' }
 ];
 
 function createDefaultMeals(dayIdx: number): Meal[] {
-  return MEAL_TEMPLATES.map(({ grams, calories, protein, carbs, fats, ...meta }, i) => ({
+  return MEAL_TEMPLATES.map((meta, i) => ({
     ...meta,
     id: `m${i + 1}-${dayIdx}`,
-    items: [{ foodId: `f${i + 1}`, foodNameAr: '', foodNameEn: '', grams, calories, protein, carbs, fats }],
-    totalCalories: calories,
-    totalProtein: protein,
-    totalCarbs: carbs,
-    totalFats: fats,
+    items: [createFreeTextItem(i, '')],
+    totalCalories: 0,
+    totalProtein: 0,
+    totalCarbs: 0,
+    totalFats: 0,
     notes: ''
   }));
 }
+
+/** A meal written as free text by the coach: it has no per-item quantity or macros of its own. */
+export function createFreeTextItem(mealIdx: number, text: string): FoodPortion {
+  return { foodId: `f-custom-${mealIdx}`, foodNameAr: text, foodNameEn: text, grams: 0, calories: 0, protein: 0, carbs: 0, fats: 0 };
+}
+
+/** Free-text items (and empty placeholders) must not show grams/macros: those numbers aren't real. */
+export const isFreeTextItem = (item: FoodPortion) => item.foodId.startsWith('f-custom-') || !item.grams || !item.foodNameAr;
+
+export type MacroSums = { calories: number; protein: number; carbs: number; fats: number };
+
+export const hasMacros = (m: MacroSums) => m.calories > 0 || m.protein > 0 || m.carbs > 0 || m.fats > 0;
+
+export const mealMacros = (m: Meal): MacroSums => ({
+  calories: m.totalCalories || 0,
+  protein: m.totalProtein || 0,
+  carbs: m.totalCarbs || 0,
+  fats: m.totalFats || 0
+});
 
 export function createDefaultWeek(): DaySchedule[] {
   return WEEK_DAYS.map((d, idx) => ({
@@ -82,13 +95,13 @@ export function getWeekSchedule(plan: DietPlan, fallback?: DaySchedule[]): DaySc
   }));
 }
 
-export function sumMacros(meals: Meal[]) {
-  return meals.reduce(
+export function sumMacros(meals: Meal[]): MacroSums {
+  return meals.map(mealMacros).reduce(
     (acc, m) => ({
-      calories: acc.calories + (m.totalCalories || 0),
-      protein: acc.protein + (m.totalProtein || 0),
-      carbs: acc.carbs + (m.totalCarbs || 0),
-      fats: acc.fats + (m.totalFats || 0)
+      calories: acc.calories + m.calories,
+      protein: acc.protein + m.protein,
+      carbs: acc.carbs + m.carbs,
+      fats: acc.fats + m.fats
     }),
     { calories: 0, protein: 0, carbs: 0, fats: 0 }
   );

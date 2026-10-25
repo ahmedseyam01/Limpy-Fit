@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Trainee, DietPlan, CoachProfile, ProgressLog } from '../../types/nutrition';
 import { GOAL_LABELS_AR } from '../../constants';
-import { createDefaultPlan, getWeekSchedule, sumMacros } from '../../utils/plan';
+import { createDefaultPlan, getWeekSchedule, hasMacros, isFreeTextItem, mealMacros, sumMacros } from '../../utils/plan';
 import { todayIso } from '../../utils/trainee';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
@@ -263,76 +263,65 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="bg-[#0A0A0A] border border-[#222] px-3 py-1 rounded-xl text-xs font-mono font-bold text-[#9CFF00]">
-                      {meal.totalCalories || 0} kcal
-                    </div>
+                    {meal.totalCalories > 0 && (
+                      <div dir="ltr" className="bg-[#0A0A0A] border border-[#222] px-3 py-1 rounded-xl text-xs font-mono font-bold text-[#9CFF00]">
+                        {meal.totalCalories} kcal
+                      </div>
+                    )}
                   </div>
 
                   {/* Food Items */}
                   <div className="space-y-3">
-                    {meal.items.map((item, itemIdx) => (
-                      <div 
-                        key={itemIdx}
-                        className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-3 space-y-2"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1C1C1C] pb-2">
-                          <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#9CFF00] shrink-0"></span>
-                            <span>{item.foodNameAr}</span>
-                          </span>
-                          <span className="self-start sm:self-auto text-xs font-mono font-black text-[#9CFF00] bg-[#161616] px-2.5 py-1 rounded-lg border border-[#262626] flex items-center gap-1 shrink-0 shadow-sm">
-                            <Scale className="w-3.5 h-3.5 text-[#9CFF00]" />
-                            <span>الكمية: {item.grams} جرام</span>
-                          </span>
-                        </div>
-
-                        {/* Nutrition details badge (100% Mobile Ready Grid) */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px] sm:text-xs font-mono pt-2 border-t border-[#1C1C1C]">
-                          <div className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 flex items-center justify-center gap-1 whitespace-nowrap">
-                            <span>🔥</span>
-                            <span className="text-[#9CFF00] font-bold">{item.calories}</span>
-                            <span>سعرة</span>
-                          </div>
-                          <div className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 flex items-center justify-center gap-1 whitespace-nowrap">
-                            <span>🥩</span>
-                            <span>بروتين:</span>
-                            <span className="text-white font-bold">{item.protein}ج</span>
-                          </div>
-                          <div className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 flex items-center justify-center gap-1 whitespace-nowrap">
-                            <span>🍚</span>
-                            <span>كارب:</span>
-                            <span className="text-white font-bold">{item.carbs}ج</span>
-                          </div>
-                          <div className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 flex items-center justify-center gap-1 whitespace-nowrap">
-                            <span>🥑</span>
-                            <span>دهون:</span>
-                            <span className="text-white font-bold">{item.fats}ج</span>
-                          </div>
-                        </div>
-
-                        {/* Food Alternatives If Available */}
-                        {item.alternatives && item.alternatives.length > 0 && (
-                          <div className="mt-2 pt-2 border-t border-[#1C1C1C] space-y-1">
-                            <span className="text-[10px] text-[#9CFF00] font-bold flex items-center gap-1">
-                              <ArrowRightLeft className="w-3 h-3" />
-                              البدائل المتاحة بنفس القيمة:
+                    {!meal.items.some(item => item.foodNameAr) && (
+                      <p className="text-xs text-gray-500">الكابتن لسه مكتبش الوجبة دي.</p>
+                    )}
+                    {meal.items.filter(item => item.foodNameAr).map((item, itemIdx) =>
+                      isFreeTextItem(item) ? (
+                        <p key={itemIdx} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-3 text-xs sm:text-sm font-bold text-white whitespace-pre-line leading-relaxed">
+                          {item.foodNameAr}
+                        </p>
+                      ) : (
+                        <div key={itemIdx} className="bg-[#0D0D0D] border border-[#222222] rounded-2xl p-3 space-y-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#9CFF00] shrink-0"></span>
+                              <span>{item.foodNameAr}</span>
                             </span>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                              {item.alternatives.map((alt, altIdx) => (
-                                <div 
-                                  key={altIdx}
-                                  className="bg-[#141414] border border-[#222] p-2 rounded-xl text-[11px] flex items-center justify-between text-gray-300"
-                                >
-                                  <span>🔄 {alt.foodNameAr}</span>
-                                  <span className="font-mono font-bold text-[#9CFF00]">{alt.grams}ج</span>
-                                </div>
-                              ))}
-                            </div>
+                            <span className="self-start sm:self-auto text-xs font-black text-[#9CFF00] bg-[#161616] px-2.5 py-1 rounded-lg border border-[#262626] flex items-center gap-1 shrink-0">
+                              <Scale className="w-3.5 h-3.5 text-[#9CFF00]" />
+                              <span>الكمية: {item.grams} جرام</span>
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    ))}
+
+                          {item.alternatives && item.alternatives.length > 0 && (
+                            <div className="pt-2 border-t border-[#1C1C1C] space-y-1">
+                              <span className="text-[10px] text-[#9CFF00] font-bold flex items-center gap-1">
+                                <ArrowRightLeft className="w-3 h-3" />
+                                البدائل المتاحة بنفس القيمة:
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                {item.alternatives.map((alt, altIdx) => (
+                                  <div key={altIdx} className="bg-[#141414] border border-[#222] p-2 rounded-xl text-[11px] flex items-center justify-between text-gray-300">
+                                    <span>🔄 {alt.foodNameAr}</span>
+                                    <span className="font-bold text-[#9CFF00]">{alt.grams}ج</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
+
+                  {/* Meal macros (only the values the coach actually entered) */}
+                  {hasMacros(mealMacros(meal)) && (
+                    <div className="grid grid-cols-3 gap-1.5 text-[10px] sm:text-xs">
+                      <span className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 text-center">🥩 بروتين: <b className="text-white">{meal.totalProtein || 0}ج</b></span>
+                      <span className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 text-center">🍚 كارب: <b className="text-white">{meal.totalCarbs || 0}ج</b></span>
+                      <span className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 text-center">🥑 دهون: <b className="text-white">{meal.totalFats || 0}ج</b></span>
+                    </div>
+                  )}
 
                   {/* Meal Notes */}
                   {meal.notes && (

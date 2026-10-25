@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { Trainee, DietPlan, CoachProfile } from '../../types/nutrition';
-import { getWeekSchedule } from '../../utils/plan';
+import { getWeekSchedule, hasMacros, isFreeTextItem, sumMacros } from '../../utils/plan';
 import { LimbyLogo } from '../../components/layout/LimbyLogo';
 import { 
   Printer, 
@@ -43,37 +43,11 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
 
   const daysList = getWeekSchedule(plan);
 
-  // Dynamic Macro Totals Calculation
-  let displayCalories = 0;
-  let displayProtein = 0;
-  let displayCarbs = 0;
-  let displayFats = 0;
-
-  const firstDayMeals = daysList[0]?.meals || plan.meals || [];
-  firstDayMeals.forEach(m => {
-    let mP = m.totalProtein || 0;
-    let mC = m.totalCarbs || 0;
-    let mF = m.totalFats || 0;
-    if ((!mP && !mC && !mF) && m.items && m.items.length > 0) {
-      m.items.forEach(it => {
-        mP += it.protein || 0;
-        mC += it.carbs || 0;
-        mF += it.fats || 0;
-      });
-    }
-    displayProtein += mP;
-    displayCarbs += mC;
-    displayFats += mF;
-  });
-
-  displayCalories = Math.round((displayProtein * 4) + (displayCarbs * 4) + (displayFats * 9));
-
-  if (displayCalories === 0) {
-    displayCalories = 1617;
-    displayProtein = 151;
-    displayCarbs = 161;
-    displayFats = 41;
-  }
+  // Summary shows the coach's targets for this plan.
+  const displayCalories = plan.targetMacros.calories;
+  const displayProtein = plan.targetMacros.proteinGrams;
+  const displayCarbs = plan.targetMacros.carbsGrams;
+  const displayFats = plan.targetMacros.fatsGrams;
 
   return (
     <div className="space-y-6 pb-24 select-none">
@@ -268,22 +242,8 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
 
         {/* ==================== PAGES 3 TO 9: 7 WEEKLY DAYS PAGES (مع مسافة علوية كبيرة واسعة) ==================== */}
         {daysList.map((day, idx) => {
-          let dayCal = 0, dayP = 0, dayC = 0, dayF = 0;
-          day.meals.forEach(m => {
-            let mP = m.totalProtein || 0;
-            let mC = m.totalCarbs || 0;
-            let mF = m.totalFats || 0;
-            if ((!mP && !mC && !mF) && m.items && m.items.length > 0) {
-              m.items.forEach(it => {
-                mP += it.protein || 0;
-                mC += it.carbs || 0;
-                mF += it.fats || 0;
-              });
-            }
-            dayP += mP; dayC += mC; dayF += mF;
-          });
-          dayCal = Math.round((dayP * 4) + (dayC * 4) + (dayF * 9));
-          if (dayCal === 0) dayCal = displayCalories;
+          const dayTotals = sumMacros(day.meals);
+          const showDayTotals = hasMacros(dayTotals);
 
           const isLastDay = idx === daysList.length - 1;
 
@@ -294,17 +254,21 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
             >
               {/* Day Header Bar matching Screenshot 3 - Responsive for Mobile */}
               <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-[#9CFF00] pb-3">
-                <div className="bg-[#141414] border border-[#262626] px-3 py-1.5 rounded-xl font-mono text-[10px] sm:text-[11px] text-[#9CFF00] font-bold text-center w-full sm:w-auto">
-                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
-                    <span>{dayCal} kcal</span>
-                    <span className="text-gray-600">|</span>
-                    <span>P: {Math.round(dayP)}g</span>
-                    <span className="text-gray-600">|</span>
-                    <span>C: {Math.round(dayC)}g</span>
-                    <span className="text-gray-600">|</span>
-                    <span>F: {Math.round(dayF)}g</span>
+                {showDayTotals ? (
+                  <div dir="ltr" className="bg-[#141414] border border-[#262626] px-3 py-1.5 rounded-xl font-mono text-[10px] sm:text-[11px] text-[#9CFF00] font-bold text-center w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
+                      <span>{dayTotals.calories} kcal</span>
+                      <span className="text-gray-600">|</span>
+                      <span>P: {dayTotals.protein}g</span>
+                      <span className="text-gray-600">|</span>
+                      <span>C: {dayTotals.carbs}g</span>
+                      <span className="text-gray-600">|</span>
+                      <span>F: {dayTotals.fats}g</span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <span />
+                )}
 
                 <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                   <div className="text-right">
@@ -331,24 +295,16 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
               {/* 5 Meal Cards */}
               <div className="space-y-3">
                 {day.meals.map((meal) => {
-                  let p = meal.totalProtein || 0;
-                  let c = meal.totalCarbs || 0;
-                  let f = meal.totalFats || 0;
-                  if ((!p && !c && !f) && meal.items && meal.items.length > 0) {
-                    meal.items.forEach(it => {
-                      p += it.protein || 0;
-                      c += it.carbs || 0;
-                      f += it.fats || 0;
-                    });
-                  }
-                  const mealCal = meal.totalCalories || Math.round((p * 4) + (c * 4) + (f * 9));
-
                   return (
                     <div key={meal.id} className="bg-[#141414] border border-[#222222] rounded-2xl p-3.5 space-y-2">
                       <div className="flex items-center justify-between border-b border-[#222222] pb-1.5">
-                        <span className="font-mono text-[10px] text-[#9CFF00] font-bold bg-[#0A0A0A] px-2.5 py-0.5 rounded-lg border border-[#262626]">
-                          kcal {mealCal}
-                        </span>
+                        {meal.totalCalories > 0 ? (
+                          <span dir="ltr" className="font-mono text-[10px] text-[#9CFF00] font-bold bg-[#0A0A0A] px-2.5 py-0.5 rounded-lg border border-[#262626]">
+                            {meal.totalCalories} kcal
+                          </span>
+                        ) : (
+                          <span />
+                        )}
 
                         <div className="flex items-center gap-2">
                           <h3 className="font-black text-white text-xs">{meal.titleAr}</h3>
@@ -357,11 +313,11 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                       </div>
 
                       <div className="bg-[#0A0A0A] border border-[#1F1F1F] p-2.5 rounded-xl text-right space-y-1.5">
-                        {meal.items && meal.items.length > 0 ? (
-                          meal.items.map((item, itemIdx) => (
-                            <div key={itemIdx} className="flex items-center justify-between text-xs py-0.5 border-b border-[#181818] last:border-none">
-                              <span className="font-bold text-[#9CFF00] font-mono">{item.grams}g</span>
-                              <span className="font-bold text-white">{item.foodNameAr}</span>
+                        {meal.items.some(item => item.foodNameAr) ? (
+                          meal.items.filter(item => item.foodNameAr).map((item, itemIdx) => (
+                            <div key={itemIdx} className="flex items-center justify-between gap-3 text-xs py-0.5 border-b border-[#181818] last:border-none">
+                              {!isFreeTextItem(item) && <span className="font-bold text-[#9CFF00] font-mono shrink-0">{item.grams}g</span>}
+                              <span className="font-bold text-white whitespace-pre-line text-right flex-1">{item.foodNameAr}</span>
                             </div>
                           ))
                         ) : (

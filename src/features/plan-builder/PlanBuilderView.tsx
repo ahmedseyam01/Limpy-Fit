@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, Check, Copy, Dumbbell, FileText, Plus, Sparkles, Trash2 } from 'lucide-react';
 import type { DaySchedule, DietPlan, Exercise, Meal, Trainee } from '../../types/nutrition';
 import { GOAL_LABELS_AR, WEEK_DAYS } from '../../constants';
-import { createDefaultWeek, getWeekSchedule } from '../../utils/plan';
+import { createDefaultWeek, createFreeTextItem, getWeekSchedule, sumMacros } from '../../utils/plan';
 
 interface PlanBuilderViewProps {
   trainee: Trainee;
@@ -12,6 +12,14 @@ interface PlanBuilderViewProps {
 }
 
 const parseOptionalInt = (value: string) => (value === '' ? undefined : parseInt(value, 10) || 0);
+
+type MacroKey = 'totalCalories' | 'totalProtein' | 'totalCarbs' | 'totalFats';
+const MACRO_FIELDS: { key: MacroKey; label: string }[] = [
+  { key: 'totalCalories', label: 'سعرات' },
+  { key: 'totalProtein', label: 'بروتين (ج)' },
+  { key: 'totalCarbs', label: 'كارب (ج)' },
+  { key: 'totalFats', label: 'دهون (ج)' }
+];
 
 export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf }: PlanBuilderViewProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
@@ -46,19 +54,19 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf }: Plan
     copiedTimer.current = setTimeout(() => setCopiedNotification(false), 3000);
   };
 
-  const handleUpdateMealText = (mealIdx: number, text: string) => {
-    const meals: Meal[] = dayMeals.map((m, i) =>
-      i === mealIdx
-        ? {
-            ...m,
-            items: [
-              { foodId: `f-custom-${mealIdx}`, foodNameAr: text, foodNameEn: text, grams: 100, calories: 300, protein: 25, carbs: 30, fats: 5 }
-            ]
-          }
-        : m
-    );
+  const updateMeal = (mealIdx: number, update: (meal: Meal) => Meal) => {
+    const meals = dayMeals.map((m, i) => (i === mealIdx ? update(m) : m));
     updateActiveDay(d => ({ ...d, meals }), { meals });
   };
+
+  const handleUpdateMealText = (mealIdx: number, text: string) =>
+    updateMeal(mealIdx, m => ({ ...m, items: [createFreeTextItem(mealIdx, text)] }));
+
+  const handleUpdateMealMacro = (mealIdx: number, key: MacroKey, value: string) =>
+    updateMeal(mealIdx, m => ({ ...m, [key]: Math.max(0, parseInt(value, 10) || 0) }));
+
+  const dayTotals = sumMacros(dayMeals);
+  const target = plan.targetMacros;
 
   const handleUpdateExercise = <K extends keyof Exercise>(exIdx: number, field: K, value: Exercise[K]) =>
     setExercises(list => list.map((ex, i) => (i === exIdx ? { ...ex, [field]: value } : ex)));
@@ -149,20 +157,25 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf }: Plan
 
       {/* Meals */}
       <div className="space-y-4">
+        <div className="bg-[#0D0D0D] border border-[#262626] rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="font-bold text-white">إجمالي يوم ({activeDay?.dayNameAr}):</span>
+          <span className="text-gray-300 flex flex-wrap gap-x-3 gap-y-1">
+            <span><b className="text-[#9CFF00]">{dayTotals.calories}</b> / {target.calories} سعرة</span>
+            <span>بروتين <b className="text-white">{dayTotals.protein}</b> / {target.proteinGrams}ج</span>
+            <span>كارب <b className="text-white">{dayTotals.carbs}</b> / {target.carbsGrams}ج</span>
+            <span>دهون <b className="text-white">{dayTotals.fats}</b> / {target.fatsGrams}ج</span>
+          </span>
+        </div>
+
         {dayMeals.map((meal, mIdx) => (
           <div
             key={meal.id}
             className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-5 space-y-3 shadow-xl hover:border-[#9CFF00]/40 transition-all"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#9CFF00] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#9CFF00]" />
-                {meal.titleAr}
-              </span>
-              <span className="text-[10px] text-gray-400 font-mono bg-[#0D0D0D] px-2.5 py-1 rounded-xl border border-[#262626]">
-                {meal.totalCalories} kcal | P: {meal.totalProtein}g | C: {meal.totalCarbs}g
-              </span>
-            </div>
+            <span className="text-xs font-bold text-[#9CFF00] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#9CFF00]" />
+              {meal.titleAr}
+            </span>
 
             <input
               type="text"
@@ -171,6 +184,27 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf }: Plan
               placeholder="اكتب أطعمة هذه الوجبة هنا بالتفصيل..."
               className="w-full bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-xs rounded-2xl p-3 outline-none font-medium"
             />
+
+            <div>
+              <span className="text-[10px] text-gray-500 block mb-1">قيم الوجبة (اختياري — بتظهر للمتدرب لو كتبتها):</span>
+              <div className="grid grid-cols-4 gap-2">
+                {MACRO_FIELDS.map(f => (
+                  <label key={f.key} className="block">
+                    <span className="text-[10px] text-gray-400 block mb-0.5 text-center">{f.label}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      inputMode="numeric"
+                      value={meal[f.key] || ''}
+                      placeholder="—"
+                      onFocus={e => e.target.select()}
+                      onChange={e => handleUpdateMealMacro(mIdx, f.key, e.target.value)}
+                      className="w-full bg-[#0D0D0D] border border-[#262626] focus:border-[#9CFF00] text-white text-xs text-center rounded-xl py-1.5 outline-none"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>
