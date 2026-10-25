@@ -22,7 +22,7 @@ export const LimbyLogo: React.FC<LimbyLogoProps> = ({ size = 'md', showSubtitle 
   };
 
   const subSizes = {
-    sm: 'text-[9px] tracking-widest',
+    sm: 'text-[10px] tracking-widest',
     md: 'text-xs tracking-[0.25em]',
     lg: 'text-sm tracking-[0.3em]',
     xl: 'text-base tracking-[0.35em]'

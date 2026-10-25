@@ -60,7 +60,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
             <Printer className="w-4 h-4 stroke-[2.5]" />
             <span>حفظ PDF أو طباعة</span>
           </button>
-          <span className="text-[10px] text-gray-500 text-center sm:text-left">لحفظه كملف: اختار «Save as PDF» من نافذة الطباعة</span>
+          <span className="text-[11px] text-gray-500 text-center sm:text-left">لحفظه كملف: اختار «Save as PDF» من نافذة الطباعة</span>
         </div>
       </div>
 
@@ -140,25 +140,25 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
             <div className="bg-[#141414] border-2 border-[#9CFF00] rounded-2xl p-3 sm:p-4 text-center shadow-[0_0_15px_rgba(156,255,0,0.15)]">
               <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">إجمالي السعرات</span>
               <span className="text-xl sm:text-3xl font-black text-[#9CFF00] block mt-1">{displayCalories}</span>
-              <span className="text-[9px] text-gray-500 font-mono">kcal / day</span>
+              <span className="text-[10px] text-gray-500 font-mono">kcal / day</span>
             </div>
 
             <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3 sm:p-4 text-center">
               <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">البروتين اليومي</span>
               <span className="text-xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayProtein)}g</span>
-              <span className="text-[9px] text-blue-400 font-mono">Protein Target</span>
+              <span className="text-[10px] text-blue-400 font-mono">Protein Target</span>
             </div>
 
             <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3 sm:p-4 text-center">
               <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">النشويات اليومية</span>
               <span className="text-xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayCarbs)}g</span>
-              <span className="text-[9px] text-emerald-400 font-mono">Carbs Target</span>
+              <span className="text-[10px] text-emerald-400 font-mono">Carbs Target</span>
             </div>
 
             <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3 sm:p-4 text-center">
               <span className="text-[11px] sm:text-xs text-gray-400 font-bold block">الدهون الصحية</span>
               <span className="text-xl sm:text-3xl font-black text-white block mt-1">{Math.round(displayFats)}g</span>
-              <span className="text-[9px] text-amber-400 font-mono">Healthy Fats</span>
+              <span className="text-[10px] text-amber-400 font-mono">Healthy Fats</span>
             </div>
           </div>
 
@@ -166,7 +166,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4">
             <div className="bg-[#141414] border border-[#222222] p-4 rounded-2xl space-y-3">
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center justify-end gap-1.5 flex-wrap">
-                <span className="font-mono text-[#9CFF00] text-[10px] sm:text-xs font-semibold">(Hydration & Rules)</span>
+                <span className="font-mono text-[#9CFF00] text-[11px] sm:text-xs font-semibold">(Hydration & Rules)</span>
                 <span>قواعد وإرشادات التغذية</span>
                 <ShieldCheck className="w-4 h-4 text-[#9CFF00] shrink-0" />
               </h3>
@@ -188,7 +188,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
 
             <div className="bg-[#141414] border border-[#222222] p-4 rounded-2xl space-y-3">
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center justify-end gap-1.5 flex-wrap">
-                <span className="font-mono text-[#9CFF00] text-[10px] sm:text-xs font-semibold">(Supplements)</span>
+                <span className="font-mono text-[#9CFF00] text-[11px] sm:text-xs font-semibold">(Supplements)</span>
                 <span>المكملات الغذائية المطلوبة</span>
                 <Sparkles className="w-4 h-4 text-[#9CFF00] shrink-0" />
               </h3>
@@ -239,14 +239,14 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
               {/* Day Header Bar matching Screenshot 3 - Responsive for Mobile */}
               <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-[#9CFF00] pb-3">
                 {showDayTotals ? (
-                  <div dir="ltr" className="bg-[#141414] border border-[#262626] px-3 py-1.5 rounded-xl font-mono text-[10px] sm:text-[11px] text-[#9CFF00] font-bold text-center w-full sm:w-auto">
+                  <div dir="ltr" className="bg-[#141414] border border-[#262626] px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-[11px] text-[#9CFF00] font-bold text-center w-full sm:w-auto">
                     <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
                       <span>{dayTotals.calories} kcal</span>
-                      <span className="text-gray-600">|</span>
+                      <span className="text-gray-500">|</span>
                       <span>P: {dayTotals.protein}g</span>
-                      <span className="text-gray-600">|</span>
+                      <span className="text-gray-500">|</span>
                       <span>C: {dayTotals.carbs}g</span>
-                      <span className="text-gray-600">|</span>
+                      <span className="text-gray-500">|</span>
                       <span>F: {dayTotals.fats}g</span>
                     </div>
                   </div>
@@ -259,7 +259,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                     <h2 className="text-base sm:text-lg font-black text-white">
                       جدول وجبات يوم ({day.dayNameAr})
                     </h2>
-                    <span className="text-[10px] text-gray-400 font-mono block">{day.dayNameEn} Meal Schedule</span>
+                    <span className="text-[11px] text-gray-400 font-mono block">{day.dayNameEn} Meal Schedule</span>
                   </div>
                   <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#9CFF00] text-black font-black text-xs sm:text-sm flex items-center justify-center shadow-[0_0_12px_#9CFF00] shrink-0">
                     #{day.dayIndex + 1}
@@ -283,7 +283,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                     <div key={meal.id} className="bg-[#141414] border border-[#222222] rounded-2xl p-3.5 space-y-2">
                       <div className="flex items-center justify-between border-b border-[#222222] pb-1.5">
                         {meal.totalCalories > 0 ? (
-                          <span dir="ltr" className="font-mono text-[10px] text-[#9CFF00] font-bold bg-[#0A0A0A] px-2.5 py-0.5 rounded-lg border border-[#262626]">
+                          <span dir="ltr" className="font-mono text-[11px] text-[#9CFF00] font-bold bg-[#0A0A0A] px-2.5 py-0.5 rounded-lg border border-[#262626]">
                             {meal.totalCalories} kcal
                           </span>
                         ) : (
@@ -318,14 +318,14 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                 <div className="mt-4 pt-3 border-t border-[#222222] space-y-2">
                   <h4 className="text-xs font-black text-white flex items-center justify-between">
                     <span className="text-[#9CFF00]">🏋️‍♂️ جدول تمارين اليوم ({day.dayNameAr})</span>
-                    <span className="font-mono text-[10px] text-gray-400">{day.exercises.length} تمارين</span>
+                    <span className="font-mono text-[11px] text-gray-400">{day.exercises.length} تمارين</span>
                   </h4>
                   
                   <div className="space-y-1.5">
                     {day.exercises.map((ex, exIdx) => (
                       <div key={ex.id || exIdx} className="bg-[#0A0A0A] border border-[#222222] p-2 rounded-xl text-right flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-md bg-[#9CFF00]/10 text-[#9CFF00] font-mono text-[10px] font-bold flex items-center justify-center">
+                          <span className="w-5 h-5 rounded-md bg-[#9CFF00]/10 text-[#9CFF00] font-mono text-[11px] font-bold flex items-center justify-center">
                             #{exIdx + 1}
                           </span>
                           <span className="font-bold text-white">{ex.nameAr}</span>
@@ -348,7 +348,7 @@ export const PdfExportView: React.FC<PdfExportViewProps> = ({
                 <div className="text-[11px] font-semibold text-gray-300">
                   Designed & Developed by <span className="text-[#9CFF00] font-black">Ahmed Seyam</span>
                 </div>
-                <div className="text-[9px] text-gray-500 font-mono tracking-widest uppercase">
+                <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">
                   All Rights Reserved
                 </div>
               </div>

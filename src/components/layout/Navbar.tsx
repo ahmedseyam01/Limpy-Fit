@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="text-xs sm:text-sm font-black text-white italic tracking-tight leading-none group-hover:text-[#9CFF00] transition-colors">
               LIMBY <span className="text-[#9CFF00]">FIT</span>
             </div>
-            <span className="hidden sm:block text-[8px] text-[#9CFF00] font-mono font-bold tracking-widest uppercase mt-0.5">
+            <span className="hidden sm:block text-[10px] text-[#9CFF00] font-mono font-bold tracking-widest uppercase mt-0.5">
               {isTraineeView ? 'CLIENT PORTAL' : 'FUEL YOUR PROGRESS'}
             </span>
           </div>

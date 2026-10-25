@@ -75,14 +75,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* Brand Preview Card matching prompt logo specs */}
         <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-6 flex flex-col items-center justify-between text-center min-h-[350px]">
           <div>
-            <span className="text-[10px] text-gray-500 font-mono block mb-4">LIVE PDF LOGO PREVIEW</span>
+            <span className="text-[11px] text-gray-500 font-mono block mb-4">LIVE PDF LOGO PREVIEW</span>
             <LimbyLogo size="xl" showSubtitle={true} />
           </div>
 
           <div className="w-full bg-[#0A0A0A] border border-[#262626] p-4 rounded-2xl space-y-1">
             <span className="text-sm font-black text-white block">{name}</span>
             <span className="text-xs text-[#9CFF00] font-mono block">{title}</span>
-            <span dir="ltr" className="text-[10px] text-gray-500 font-mono block">{whatsapp}</span>
+            <span dir="ltr" className="text-[11px] text-gray-500 font-mono block">{whatsapp}</span>
           </div>
         </div>
 

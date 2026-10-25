@@ -18,14 +18,14 @@ export const Footer: React.FC<FooterProps> = ({ className = '', isLight = false 
           <span className={isLight ? 'text-gray-900' : 'text-white'}>LIMBY</span>
           <span className="text-[#9CFF00] drop-shadow-[0_0_8px_rgba(156,255,0,0.5)]">FIT</span>
           <span className="text-gray-400 font-mono text-xs sm:text-sm">©</span>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-mono font-extrabold bg-[#9CFF00]/15 text-[#9CFF00] border border-[#9CFF00]/40 shadow-[0_0_12px_rgba(156,255,0,0.25)] tracking-wider">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-mono font-extrabold bg-[#9CFF00]/15 text-[#9CFF00] border border-[#9CFF00]/40 shadow-[0_0_12px_rgba(156,255,0,0.25)] tracking-wider">
             2026
           </span>
         </div>
 
         {/* Developer Credit */}
         <div className="text-xs sm:text-base font-bold tracking-wide flex items-center justify-center gap-1 sm:gap-1.5">
-          <span className={isLight ? 'text-gray-600' : 'text-gray-300'}>
+          <span className={isLight ? 'text-gray-500' : 'text-gray-300'}>
             Designed & Developed by
           </span>
           <span className="font-black text-[#9CFF00] drop-shadow-[0_0_10px_rgba(156,255,0,0.4)] whitespace-nowrap">
@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '', isLight = false 
         </div>
 
         {/* All Rights Reserved */}
-        <div className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-mono font-bold">
+        <div className="text-[11px] sm:text-xs text-gray-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-mono font-bold">
           All Rights Reserved
         </div>
       </div>

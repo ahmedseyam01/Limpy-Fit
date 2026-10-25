@@ -52,7 +52,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
           </div>
         </div>
 
-        <div className="bg-[#0D0D0D] border border-[#262626] px-2.5 py-1 rounded-xl text-[10px] text-[#9CFF00] font-mono font-bold shrink-0">
+        <div className="bg-[#0D0D0D] border border-[#262626] px-2.5 py-1 rounded-xl text-[11px] text-[#9CFF00] font-mono font-bold shrink-0">
           {t.weight} كجم | {t.height} سم
         </div>
       </div>
@@ -73,7 +73,7 @@ export const TraineeCard = memo(function TraineeCard({ trainee: t, onOpen, onReq
           <button
             type="button"
             onClick={stop(() => window.open(buildWhatsAppCredentialsUrl(t), '_blank', 'noopener'))}
-            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
+            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
             title="إرسال عبر الواتساب"
           >
             <MessageCircle className="w-3 h-3" />

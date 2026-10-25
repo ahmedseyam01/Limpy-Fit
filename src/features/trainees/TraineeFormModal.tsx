@@ -195,7 +195,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
             </div>
             <div className="min-w-0">
               <h2 className="text-xs sm:text-base font-black text-white leading-tight truncate">{isEdit ? 'تعديل بيانات المتدرب' : 'إضافة متدرب جديد'}</h2>
-              <p className="text-[10px] sm:text-[11px] text-gray-400 truncate">توليد النظام الغذائي وبيانات الدخول تلقائياً</p>
+              <p className="text-[11px] sm:text-[11px] text-gray-400 truncate">توليد النظام الغذائي وبيانات الدخول تلقائياً</p>
             </div>
           </div>
 
@@ -218,7 +218,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
           <Sparkles className="w-4.5 h-4.5 shrink-0" />
           <div>
             <span className="font-bold block text-[11px] sm:text-xs">🎨 مصمم الأنظمة الغذائية التفاعلي الخاص بك!</span>
-            <span className="text-[10px] sm:text-[11px] text-gray-300 block leading-tight mt-0.5">أنت من يختار الوجبات والجرامات، والنظام يحسب السعرات والماكروز فوراً ويجهز ملف PDF جاهز للطباعة.</span>
+            <span className="text-[11px] sm:text-[11px] text-gray-300 block leading-tight mt-0.5">أنت من يختار الوجبات والجرامات، والنظام يحسب السعرات والماكروز فوراً ويجهز ملف PDF جاهز للطباعة.</span>
           </div>
         </div>
 
@@ -260,7 +260,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
               <button
                 type="button"
                 onClick={handleRegenerateCredentials}
-                className="text-[10px] bg-[#222] hover:bg-[#333] text-gray-300 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer self-end sm:self-auto"
+                className="text-[11px] bg-[#222] hover:bg-[#333] text-gray-300 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer self-end sm:self-auto"
               >
                 <span>إعادة توليد 🔄</span>
               </button>
@@ -290,7 +290,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
                         setTimeout(() => setCopiedField(null), 2000);
                       }
                     }}
-                    className="absolute left-2.5 bg-[#222] hover:bg-[#333] text-[#9CFF00] px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="absolute left-2.5 bg-[#222] hover:bg-[#333] text-[#9CFF00] px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                     title="نسخ البريد الإلكتروني"
                   >
                     {copiedField === 'email' ? (
@@ -331,7 +331,7 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
                         setTimeout(() => setCopiedField(null), 2000);
                       }
                     }}
-                    className="absolute left-2.5 bg-[#222] hover:bg-[#333] text-[#9CFF00] px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="absolute left-2.5 bg-[#222] hover:bg-[#333] text-[#9CFF00] px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                     title="نسخ كلمة المرور"
                   >
                     {copiedField === 'password' ? (
@@ -451,32 +451,32 @@ export const TraineeFormModal: React.FC<TraineeFormModalProps> = ({ isOpen, trai
                 <Sparkles className="w-4 h-4" />
                 الحساب التلقائي المباشر (Calculated Targets)
               </span>
-              <span className="text-[10px] text-gray-400 font-mono">Mifflin-St Jeor Formula</span>
+              <span className="text-[11px] text-gray-400 font-mono">Mifflin-St Jeor Formula</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="bg-[#161616] p-2.5 rounded-xl border border-[#262626]">
-                <span className="text-[10px] text-gray-400 block">احتياج السعرات</span>
+                <span className="text-[11px] text-gray-400 block">احتياج السعرات</span>
                 <span dir="ltr" className="text-lg font-black text-[#9CFF00] block">{stats.targetCalories} kcal</span>
-                <span className="text-[9px] text-gray-500 block">TDEE: {stats.tdee}</span>
+                <span className="text-[10px] text-gray-500 block">TDEE: {stats.tdee}</span>
               </div>
 
               <div className="bg-[#161616] p-2.5 rounded-xl border border-[#262626]">
-                <span className="text-[10px] text-gray-400 block">البروتين اليومي</span>
+                <span className="text-[11px] text-gray-400 block">البروتين اليومي</span>
                 <span className="text-lg font-black text-white">{stats.macros.proteinGrams}g</span>
-                <span className="text-[9px] text-blue-400 block">{stats.macros.proteinRatio}g / kg</span>
+                <span className="text-[10px] text-blue-400 block">{stats.macros.proteinRatio}g / kg</span>
               </div>
 
               <div className="bg-[#161616] p-2.5 rounded-xl border border-[#262626]">
-                <span className="text-[10px] text-gray-400 block">النشويات (Carbs)</span>
+                <span className="text-[11px] text-gray-400 block">النشويات (Carbs)</span>
                 <span className="text-lg font-black text-white">{stats.macros.carbsGrams}g</span>
-                <span className="text-[9px] text-emerald-400 block">طاقة التمرين</span>
+                <span className="text-[10px] text-emerald-400 block">طاقة التمرين</span>
               </div>
 
               <div className="bg-[#161616] p-2.5 rounded-xl border border-[#262626]">
-                <span className="text-[10px] text-gray-400 block">الدهون الصحّية</span>
+                <span className="text-[11px] text-gray-400 block">الدهون الصحّية</span>
                 <span className="text-lg font-black text-white">{stats.macros.fatsGrams}g</span>
-                <span className="text-[9px] text-amber-400 block">الهرمونات</span>
+                <span className="text-[10px] text-amber-400 block">الهرمونات</span>
               </div>
             </div>
           </div>

@@ -110,7 +110,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
 
             <div className="flex items-center gap-3 bg-[#0D0D0D] border border-[#262626] p-3 rounded-2xl shrink-0 w-full sm:w-auto justify-around sm:justify-start">
               <div className="text-center px-3 border-l border-[#262626]">
-                <span className="text-[10px] text-gray-400 block font-mono">الماء اليومي</span>
+                <span className="text-[11px] text-gray-400 block font-mono">الماء اليومي</span>
                 <span className="text-sm font-black text-blue-400 flex items-center justify-center gap-1">
                   <Droplet className="w-3.5 h-3.5 fill-blue-400" />
                   {dietPlan?.hydrationLiters || 4}L
@@ -118,7 +118,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
               </div>
 
               <div className="text-center px-3">
-                <span className="text-[10px] text-gray-400 block font-mono">ساعات النوم</span>
+                <span className="text-[11px] text-gray-400 block font-mono">ساعات النوم</span>
                 <span className="text-sm font-black text-amber-400 flex items-center justify-center gap-1">
                   <Moon className="w-3.5 h-3.5 fill-amber-400" />
                   {dietPlan?.sleepHours || 8}h
@@ -183,7 +183,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                       : 'bg-[#141414] text-gray-300 border-[#262626] hover:border-gray-600 font-bold'
                   }`}
                 >
-                  <span className="text-[9px] block font-mono opacity-80 leading-tight">اليوم {idx + 1}</span>
+                  <span className="text-[10px] block font-mono opacity-80 leading-tight">اليوم {idx + 1}</span>
                   <span className="text-[11px] sm:text-xs block font-extrabold mt-0.5 leading-tight">{d.dayNameAr}</span>
                 </button>
               ))}
@@ -196,13 +196,13 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                   <Dumbbell className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-400 font-mono block">جدول تمرين يوم ({daysSchedule[activeDayIndex]?.dayNameAr}):</span>
+                  <span className="text-[11px] text-gray-400 font-mono block">جدول تمرين يوم ({daysSchedule[activeDayIndex]?.dayNameAr}):</span>
                   <h3 className="text-xs sm:text-sm font-extrabold text-white">
                     {daysSchedule[activeDayIndex]?.workoutFocus || 'استشفاء وراحة تامة 🧘‍♂️'}
                   </h3>
                 </div>
               </div>
-              <span className="text-[10px] text-[#9CFF00] font-mono font-bold bg-[#9CFF00]/10 border border-[#9CFF00]/30 px-2.5 py-1 rounded-xl shrink-0">
+              <span className="text-[11px] text-[#9CFF00] font-mono font-bold bg-[#9CFF00]/10 border border-[#9CFF00]/30 px-2.5 py-1 rounded-xl shrink-0">
                 WORKOUT FOCUS 🏋️‍♂️
               </span>
             </div>
@@ -210,27 +210,27 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
             {/* Daily Macro Summary Banner for Selected Day */}
             <div className="bg-[#141414] border border-[#262626] rounded-2xl p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
               <div className="bg-[#0A0A0A] p-2.5 rounded-xl border border-[#222]">
-                <span className="text-[10px] text-gray-400 block font-mono">إجمالي السعرات</span>
+                <span className="text-[11px] text-gray-400 block font-mono">إجمالي السعرات</span>
                 <span dir="ltr" className="text-base sm:text-lg font-black text-[#9CFF00] block">{Math.round(dayCalories)} kcal</span>
-                <span className="text-[9px] text-gray-500 block">من <bdi dir="ltr">{targetCal} kcal</bdi></span>
+                <span className="text-[10px] text-gray-500 block">من <bdi dir="ltr">{targetCal} kcal</bdi></span>
               </div>
 
               <div className="bg-[#0A0A0A] p-2.5 rounded-xl border border-[#222]">
-                <span className="text-[10px] text-gray-400 block font-mono">البروتين اليومي</span>
+                <span className="text-[11px] text-gray-400 block font-mono">البروتين اليومي</span>
                 <span className="text-base sm:text-lg font-black text-white">{Math.round(dayProtein)}g</span>
-                <span className="text-[9px] text-blue-400 block">من {targetProt}g</span>
+                <span className="text-[10px] text-blue-400 block">من {targetProt}g</span>
               </div>
 
               <div className="bg-[#0A0A0A] p-2.5 rounded-xl border border-[#222]">
-                <span className="text-[10px] text-gray-400 block font-mono">النشويات (Carbs)</span>
+                <span className="text-[11px] text-gray-400 block font-mono">النشويات (Carbs)</span>
                 <span className="text-base sm:text-lg font-black text-white">{Math.round(dayCarbs)}g</span>
-                <span className="text-[9px] text-emerald-400 block">طاقة التمرين</span>
+                <span className="text-[10px] text-emerald-400 block">طاقة التمرين</span>
               </div>
 
               <div className="bg-[#0A0A0A] p-2.5 rounded-xl border border-[#222]">
-                <span className="text-[10px] text-gray-400 block font-mono">الدهون الصحّية</span>
+                <span className="text-[11px] text-gray-400 block font-mono">الدهون الصحّية</span>
                 <span className="text-base sm:text-lg font-black text-white">{Math.round(dayFats)}g</span>
-                <span className="text-[9px] text-amber-400 block">الهرمونات</span>
+                <span className="text-[10px] text-amber-400 block">الهرمونات</span>
               </div>
             </div>
 
@@ -255,7 +255,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                       <div>
                         <h4 className="text-sm font-bold text-white">{meal.titleAr}</h4>
                         {meal.timing && (
-                          <span className="text-[10px] text-gray-400 flex items-center gap-1 font-mono mt-0.5">
+                          <span className="text-[11px] text-gray-400 flex items-center gap-1 font-mono mt-0.5">
                             <Clock className="w-3 h-3 text-[#9CFF00]" />
                             {meal.timing}
                           </span>
@@ -295,7 +295,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
 
                           {item.alternatives && item.alternatives.length > 0 && (
                             <div className="pt-2 border-t border-[#1C1C1C] space-y-1">
-                              <span className="text-[10px] text-[#9CFF00] font-bold flex items-center gap-1">
+                              <span className="text-[11px] text-[#9CFF00] font-bold flex items-center gap-1">
                                 <ArrowRightLeft className="w-3 h-3" />
                                 البدائل المتاحة بنفس القيمة:
                               </span>
@@ -316,7 +316,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
 
                   {/* Meal macros (only the values the coach actually entered) */}
                   {hasMacros(mealMacros(meal)) && (
-                    <div className="grid grid-cols-3 gap-1.5 text-[10px] sm:text-xs">
+                    <div className="grid grid-cols-3 gap-1.5 text-[11px] sm:text-xs">
                       <span className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 text-center">🥩 بروتين: <b className="text-white">{meal.totalProtein || 0}ج</b></span>
                       <span className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 text-center">🍚 كارب: <b className="text-white">{meal.totalCarbs || 0}ج</b></span>
                       <span className="bg-[#141414] border border-[#222] px-2 py-1 rounded-lg text-gray-300 text-center">🥑 دهون: <b className="text-white">{meal.totalFats || 0}ج</b></span>
@@ -430,7 +430,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                         </div>
                         <div>
                           <span className="text-xs font-bold text-white block">قياس يوم {log.date}</span>
-                          <span className="text-[10px] text-gray-500 font-mono">تسجيل المشترك</span>
+                          <span className="text-[11px] text-gray-500 font-mono">تسجيل المشترك</span>
                         </div>
                       </div>
 
@@ -461,7 +461,7 @@ export const TraineePortalView: React.FC<TraineePortalViewProps> = ({
                     key={idx}
                     className="p-3 bg-[#0D0D0D] border border-[#222222] rounded-2xl text-xs text-gray-300 flex items-start gap-2.5"
                   >
-                    <span className="w-5 h-5 rounded-lg bg-[#9CFF00]/10 text-[#9CFF00] font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="w-5 h-5 rounded-lg bg-[#9CFF00]/10 text-[#9CFF00] font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
                       {idx + 1}
                     </span>
                     <span className="leading-relaxed">{inst}</span>

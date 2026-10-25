@@ -82,7 +82,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
       {/* Trainee Profile Banner */}
       <div className="bg-[#161616] border border-[#2A2A2A] rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <span dir="ltr" className="text-[10px] text-[#9CFF00] font-mono font-bold uppercase tracking-widest block text-right">
+          <span dir="ltr" className="text-[11px] text-[#9CFF00] font-mono font-bold uppercase tracking-widest block text-right">
             7-DAY WEEKLY DIET PLANNER
           </span>
           <h1 className="text-2xl font-black text-white mt-0.5">{trainee.name}</h1>
@@ -151,7 +151,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
                 }`}
               >
                 <span className="block">{d.ar}</span>
-                <span className={`text-[9px] block font-mono ${isActive ? 'text-black' : 'text-gray-600'}`}>{d.en}</span>
+                <span className={`text-[10px] block font-mono ${isActive ? 'text-black' : 'text-gray-500'}`}>{d.en}</span>
               </button>
             );
           })}
@@ -204,11 +204,11 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
             />
 
             <div>
-              <span className="text-[10px] text-gray-500 block mb-1">قيم الوجبة (اختياري — بتظهر للمتدرب لو كتبتها):</span>
+              <span className="text-[11px] text-gray-500 block mb-1">قيم الوجبة (اختياري — بتظهر للمتدرب لو كتبتها):</span>
               <div className="grid grid-cols-4 gap-2">
                 {MACRO_FIELDS.map(f => (
                   <label key={f.key} className="block">
-                    <span className="text-[10px] text-gray-400 block mb-0.5 text-center">{f.label}</span>
+                    <span className="text-[11px] text-gray-400 block mb-0.5 text-center">{f.label}</span>
                     <input
                       type="number"
                       min={0}
@@ -281,7 +281,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
 
                 <div className="grid grid-cols-3 gap-2 text-xs font-mono">
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-0.5">الجولات (Sets):</label>
+                    <label className="text-[11px] text-gray-400 block mb-0.5">الجولات (Sets):</label>
                     <input
                       type="number"
                       value={ex.sets || ''}
@@ -291,7 +291,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-0.5">التكرارات (Reps):</label>
+                    <label className="text-[11px] text-gray-400 block mb-0.5">التكرارات (Reps):</label>
                     <input
                       type="text"
                       dir="ltr"
@@ -302,7 +302,7 @@ export function PlanBuilderView({ trainee, plan, onSavePlan, onExportPdf, onEdit
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-0.5">الراحة (ثانية):</label>
+                    <label className="text-[11px] text-gray-400 block mb-0.5">الراحة (ثانية):</label>
                     <input
                       type="number"
                       value={ex.restSeconds || ''}

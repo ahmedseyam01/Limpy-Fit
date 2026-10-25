@@ -67,6 +67,15 @@ input[type='tel'] {
   text-align: right;
 }
 
+/* iOS zooms into inputs with text under 16px when focused; keep them at 16px there now that pinch-zoom is allowed. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
 @media print {
   @page {
     size: A4 portrait;
