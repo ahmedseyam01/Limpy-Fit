@@ -2,8 +2,7 @@
 /**
  * Copies the server settings from .env.local to the Vercel project (Production).
  *
- *   npx vercel login        # once
- *   npm run setup:vercel
+ *   npm run setup:vercel     (logs in to Vercel and links the project if needed)
  *
  * Variables that already exist on Vercel are never overwritten
  * (changing AUTH_SECRET would make the stored data unreadable).
@@ -42,14 +41,19 @@ const env = readEnvFile('.env.local');
 for (const key of REQUIRED) if (!env[key]) fail(`${key} is missing in .env.local`);
 if (env.AUTH_SECRET.length < 16) fail('AUTH_SECRET must be at least 16 characters');
 
+if (vercel(['whoami']).status !== 0) {
+  console.log('Log in to Vercel (a browser window will open)...');
+  if (vercel(['login'], { stdio: 'inherit' }).status !== 0) fail('Vercel login failed');
+}
+
 if (!existsSync('.vercel/project.json')) {
   console.log('Linking this folder to your Vercel project...');
-  if (vercel(['link'], { stdio: 'inherit' }).status !== 0) fail('vercel link failed (did you run "npx vercel login"?)');
+  if (vercel(['link'], { stdio: 'inherit' }).status !== 0) fail('vercel link failed');
 }
 
 const listed = vercel(['env', 'ls', TARGET]);
 if (listed.status !== 0) fail(`Could not list Vercel env vars:\n${listed.stderr || listed.stdout}`);
-const existing = new Set([...REQUIRED, ...OPTIONAL].filter(key => new RegExp(`\\b${key}\\b`).test(listed.stdout)));
+const existing = new Set([...REQUIRED, ...OPTIONAL].filter(key => new RegExp(`\\b${key}\\b`).test(`${listed.stdout}\n${listed.stderr}`)));
 
 let added = 0;
 for (const key of [...REQUIRED, ...OPTIONAL]) {

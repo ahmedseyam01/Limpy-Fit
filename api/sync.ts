@@ -1,5 +1,5 @@
 import type { ServerResponse } from 'http';
-import type { ProgressLog } from '../src/types/nutrition';
+import type { ProgressLog } from '../src/types/nutrition.js';
 import { mergeSyncData, type SyncData } from '../shared/sync.js';
 import { getSession, readJsonBody, sendError, sendJson, type ApiRequest } from './_lib/http.js';
 import { readStore, writeStore } from './_lib/store.js';

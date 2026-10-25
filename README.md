@@ -9,8 +9,7 @@ The API needs these environment variables. They are kept in the git-ignored `.en
 (see `.env.example`), which `npm run dev` reads automatically. To copy them to Vercel:
 
 ```bash
-npx vercel login
-npm run setup:vercel
+npm run setup:vercel   # logs in to Vercel, links the project, adds the variables
 ```
 
 Then redeploy. Variables already set on Vercel are never overwritten.

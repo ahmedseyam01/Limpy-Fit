@@ -5,7 +5,7 @@
  * a device with an old or empty cache can never wipe what other devices saved.
  * Deletions only happen through `deletedTraineeIds` (tombstones).
  */
-import type { CoachProfile, DietPlan, Trainee } from '../src/types/nutrition';
+import type { CoachProfile, DietPlan, Trainee } from '../src/types/nutrition.js';
 
 export const DEFAULT_TRAINEE_PASSWORD = 'fit1234';
 
